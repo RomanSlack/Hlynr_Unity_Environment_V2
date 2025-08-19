@@ -133,7 +133,15 @@ See `Assets/Scripts/Unity_RL_API_Integration_Feasibility.md` for detailed integr
 
 ## License
 
-Proprietary - All rights reserved
+Hippocratic License 2.1 - Copyright (c) 2025 Roman Slack
+
+This software is provided for research and educational purposes only. Usage is restricted to applications that respect human rights and international law. The software explicitly prohibits use in:
+- Lethal autonomous weapons systems
+- Military or defense applications including weapon targeting
+- Mass surveillance or predictive policing
+- Any activities violating universal human rights
+
+See [https://firstdonoharm.dev](https://firstdonoharm.dev) for full license details.
 
 ## Contact
 
