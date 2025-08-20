@@ -883,6 +883,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1062431499
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1062431500}
+  m_Layer: 0
+  m_Name: DefendedTarget
+  m_TagString: DefendedTarget
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1062431500
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1062431499}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!21 &1085887807
 Material:
   serializedVersion: 8
@@ -1419,11 +1450,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc7e1b7dbe59eaac0af481fe4ad39915, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  settings: {fileID: 0}
-  threatPrefabLegacy: {fileID: 0}
-  threatPrefabRocket: {fileID: 0}
-  pointA: {x: 27, y: 40, z: -58}
-  pointB: {x: -58, y: 50, z: 42}
+  settings: {fileID: 11400000, guid: d620330dfb4dc3e2c8f1af98a12b7f1a, type: 2}
+  defendedTarget: {fileID: 1062431500}
+  threatPrefabLegacy: {fileID: 4417342228617537960, guid: aee82a05d9bc04881979fc4785264578, type: 3}
+  threatPrefabRocket: {fileID: 6149331585787757335, guid: 03ecd8cc2de800741ab4dcd8e1731217, type: 3}
+  pointA: {x: 27, y: 100, z: -58}
+  pointB: {x: -58, y: 100, z: 42}
   spawnInterval: 3
 --- !u!1 &2043616690
 GameObject:
@@ -1507,3 +1539,4 @@ SceneRoots:
   - {fileID: 574941684}
   - {fileID: 1649774933}
   - {fileID: 2043616692}
+  - {fileID: 1062431500}

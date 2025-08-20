@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Target
   - Threat
+  - DefendedTarget
   layers:
   - Default
   - TransparentFX

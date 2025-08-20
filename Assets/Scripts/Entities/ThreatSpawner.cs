@@ -6,9 +6,12 @@ public sealed class ThreatSpawner : MonoBehaviour
     [Header("Config")]
     public GameSimSettings settings;
 
+    [Header("Scene Target (assign your defended asset here)")]
+    public Transform defendedTarget;   // Scene reference lives here
+
     [Header("Prefabs")]
-    public GameObject threatPrefabLegacy; // Capsule with ThreatGuidance (existing)
-    public GameObject threatPrefabRocket; // NEW: rocket-style threat
+    public GameObject threatPrefabLegacy; // Capsule with ThreatGuidance (legacy)
+    public GameObject threatPrefabRocket; // Rocket-style threat (copied from Missile)
 
     [Header("Spawn Line")]
     public Vector3 pointA = new Vector3(-100, 5, 150);
@@ -16,8 +19,17 @@ public sealed class ThreatSpawner : MonoBehaviour
     public float spawnInterval = 10f;
 
     float timer;
-
     public static Transform CurrentThreat { get; private set; }
+
+    void Awake()
+    {
+        // Auto-find defended target by tag if not assigned and a tag is provided
+        if (defendedTarget == null && settings != null && !string.IsNullOrWhiteSpace(settings.defendedTargetTag))
+        {
+            var go = GameObject.FindWithTag(settings.defendedTargetTag);
+            if (go) defendedTarget = go.transform;
+        }
+    }
 
     void FixedUpdate()
     {
@@ -26,9 +38,10 @@ public sealed class ThreatSpawner : MonoBehaviour
         timer = 0f;
 
         Vector3 pos = Vector3.Lerp(pointA, pointB, Random.value);
-        Quaternion rot = Quaternion.LookRotation((settings && settings.defendedTarget)
-            ? (settings.defendedTarget.position - pos).normalized
-            : Vector3.back);
+
+        Vector3 aimVec = (defendedTarget ? defendedTarget.position : Vector3.zero) - pos;
+        Vector3 forward = aimVec.sqrMagnitude > 1e-6f ? aimVec.normalized : Vector3.back;
+        Quaternion rot = Quaternion.LookRotation(forward, Vector3.up);
 
         GameObject prefab = (settings && settings.threatMode == ThreatMode.Rocket6DOF)
             ? threatPrefabRocket
@@ -36,9 +49,13 @@ public sealed class ThreatSpawner : MonoBehaviour
 
         var go = Instantiate(prefab, pos, rot);
 
-        // Wire rocket threat at spawn
+        // Wire rocket-style threat (if this prefab uses it)
         var rocket = go.GetComponent<ThreatRocketController>();
-        if (rocket && settings) rocket.ConfigureFrom(settings);
+        if (rocket)
+        {
+            if (settings) rocket.ConfigureFrom(settings);
+            rocket.attackTarget = defendedTarget; // pass SCENE defended target
+        }
 
         CurrentThreat = go.transform;
     }

@@ -8,12 +8,13 @@ public sealed class GameSimSettings : ScriptableObject
     [Header("Threat Mode Toggle")]
     public ThreatMode threatMode = ThreatMode.LegacyStraight;
 
-    [Header("Targets")]
-    public Transform defendedTarget;   // the asset/base the attacker aims for
+    [Header("Scene Target Auto-Find (optional)")]
+    [Tooltip("If set, ThreatSpawner will FindWithTag() this in the scene when no defendedTarget is assigned.")]
+    public string defendedTargetTag = "DefendedTarget";
 
     [Header("Rocket Threat Defaults")]
     public float rocketLaunchImpulse = 15f;
-    public ThrustCurve rocketThrustCurve;  // assign a reasonable curve
+    public ThrustCurve rocketThrustCurve;   // assign on ThreatRocket's ThrustModel in prefab, or use this as your default
     public float rocketTimeToAlign = 0.4f;
     public Vector3 rocketMaxTorque = new Vector3(8000, 8000, 2000);
     public float rocketFuelKg = 4f;

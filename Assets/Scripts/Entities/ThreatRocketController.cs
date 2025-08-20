@@ -11,7 +11,7 @@ using UnityEngine;
 [AddComponentMenu("Simulation/Entities/Threat Rocket Controller")]
 public sealed class ThreatRocketController : MonoBehaviour
 {
-    [Tooltip("Target to attack (usually the defended asset)")]
+    [Tooltip("Target to attack (usually the defended asset in the scene)")]
     public Transform attackTarget;
 
     [Header("Launch")]
@@ -44,7 +44,7 @@ public sealed class ThreatRocketController : MonoBehaviour
             if (fwd.sqrMagnitude > 1e-6f)
                 transform.rotation = Quaternion.LookRotation(fwd, Vector3.up);
 
-            // Use LOS pursuit
+            // LOS pursuit
             guidance.target = attackTarget;
         }
 
@@ -52,22 +52,21 @@ public sealed class ThreatRocketController : MonoBehaviour
         rb.AddForce(transform.forward * launchImpulse, ForceMode.Impulse);
     }
 
-    /// Called by spawner to apply settings-driven parameters.
+    /// Called by spawner to apply settings-driven parameters (except scene target).
     public void ConfigureFrom(GameSimSettings s)
     {
-        attackTarget = s.defendedTarget;
         launchImpulse = s.rocketLaunchImpulse;
 
-        // Thrust curve + fuel settings
-        if (s.rocketThrustCurve) thrust.GetType() // keep compiler happy
-            ; // (assigned in Editor below; here we only ensure presence)
+        // Fuel settings
+        fuel.fuelKg = s.rocketFuelKg;
+        fuel.massFlowKgPerSec = s.rocketMassFlowKgPerSec;
 
-        var fuelSys = GetComponent<FuelSystem>();
-        fuelSys.fuelKg = s.rocketFuelKg;
-        fuelSys.massFlowKgPerSec = s.rocketMassFlowKgPerSec;
+        // Control authority & guidance aggressiveness
+        sixdof.maxTorque = s.rocketMaxTorque;
+        guidance.timeToAlign = s.rocketTimeToAlign;
 
-        // Max torque & PID/guidance aggressiveness
-        GetComponent<Missile6DOFController>().maxTorque = s.rocketMaxTorque;
-        GetComponent<GuidanceProNav>().timeToAlign = s.rocketTimeToAlign;
+        // Thrust curve: assign on the ThreatRocket prefab's ThrustModel, or
+        // if your ThrustModel exposes a setter, call it here with s.rocketThrustCurve.
+        // (Left as inspector assignment to avoid coupling.)
     }
 }
