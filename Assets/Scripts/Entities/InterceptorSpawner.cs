@@ -33,6 +33,10 @@ public sealed class InterceptorSpawner : MonoBehaviour
     var guidance = go.GetComponent<GuidanceProNav>();
     if (guidance) guidance.target = ThreatSpawner.CurrentThreat;
 
+      // Register this interceptor with the inference client
+    var client = FindObjectOfType<InferenceClient>();
+    if (client) client.SetInterceptor(go);
+
     // 🔁 Pass missile and target to the HUD controller
     var hud = FindObjectOfType<MissileHUDController>();
     if (hud) hud.AttachMissile(go, ThreatSpawner.CurrentThreat);

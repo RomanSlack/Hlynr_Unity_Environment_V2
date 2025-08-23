@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bfec4fc343ee87a68e543fa2a8c5538, type: 3}
+  m_Name: InferenceConfig
+  m_EditorClassIdentifier: 
+  baseUrl: http://127.0.0.1:5000
+  healthPath: /healthz
+  inferencePath: /v1/inference
+  pollHz: 2
+  timeoutSec: 2
+  interceptorId: interceptor_0
+  threatId: threat_0
+  sendENU: 1

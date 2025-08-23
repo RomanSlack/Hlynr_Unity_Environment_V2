@@ -9,7 +9,11 @@ public sealed class ThrustModel : MonoBehaviour
     [SerializeField] ThrustCurve curve;
     [Tooltip("Align thrust with +Z (instead of +X)")]
     [SerializeField] bool useForwardAxis = true;
-    public float EvaluatedThrustN { get; private set; }  // add below fields
+
+    public float throttle01 = 1f;              // <<< NEW: external throttle scaling (0..1)
+    public float EvaluatedThrustN { get; private set; }  // <<< NEW: for telemetry/UI
+
+
     Rigidbody rb;
     FuelSystem fuel;
     float burnTime;
