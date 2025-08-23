@@ -27,4 +27,16 @@ public sealed class InferenceConfig : ScriptableObject
     [Header("Frames / Units")]
     [Tooltip("Send ENU (x=East,y=North,z=Up) to server. Internally converts from Unity coords.")]
     public bool sendENU = true;
+
+    [Header("Normalization (REQUIRED by server)")]
+    [Tooltip("Must match server's loaded vector-norm stats ID.")]
+    public string vecnorm_stats_id = "vecnorm_checkpoints_obs_v1.0_43d32970";
+    [Tooltip("Observation schema version expected by server.")]
+    public string obs_version = "obs_v1.0";
+
+    [Header("Environment (optional)")]
+    public Vector3 wind_mps = Vector3.zero;
+    [Range(0f, 0.1f)] public float noise_std = 0.01f;
+    [Tooltip("Max steps per episode, used for env metadata.")]
+    public int max_steps = 9999;
 }

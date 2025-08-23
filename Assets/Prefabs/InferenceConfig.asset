@@ -20,3 +20,8 @@ MonoBehaviour:
   interceptorId: interceptor_0
   threatId: threat_0
   sendENU: 1
+  vecnorm_stats_id: vecnorm_checkpoints_obs_v1.0_43d32970
+  obs_version: obs_v1.0
+  wind_mps: {x: 0, y: 0, z: 0}
+  noise_std: 0.01
+  max_steps: 9999

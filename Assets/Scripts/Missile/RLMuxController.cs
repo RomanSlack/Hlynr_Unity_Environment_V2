@@ -6,7 +6,18 @@ using UnityEngine;
 [RequireComponent(typeof(ThrustModel))]
 public sealed class RLMuxController : MonoBehaviour
 {
+    [Header("Status")]
     public bool rlActive;
+
+    [Header("Mapping / Limits")]
+    [Tooltip("Optional scale on rate commands (rad/s). Use 0.5..2.0 to tune authority.")]
+    public float rateGain = 1.0f;
+
+    [Tooltip("Clamp magnitude of body rate command (rad/s).")]
+    public float maxRateRad = 3.0f;
+
+    [Tooltip("Minimum thrust to keep control effective (0..1).")]
+    public float minThrustFloor = 0.0f;
 
     PIDAttitudeController pid;
     ThrustModel thrust;
@@ -17,25 +28,36 @@ public sealed class RLMuxController : MonoBehaviour
         pid   = GetComponent<PIDAttitudeController>();
         thrust= GetComponent<ThrustModel>();
         proNav= GetComponent<GuidanceProNav>();
+        if (!thrust) Debug.LogError("[RLMuxController] Missing ThrustModel.");
+        if (!pid)    Debug.LogError("[RLMuxController] Missing PIDAttitudeController.");
     }
 
-    public void ApplyAction(float thrust01, Vector3 desiredBodyRateRad)
+    /// NOTE: Server sends body rates as (pitch, yaw, roll) in rad/s.
+    /// Unity body axes: X(right)=pitch, Y(up)=yaw, Z(forward)=roll.
+    /// So mapping to Vector3(x,y,z) is direct: (pitch->x, yaw->y, roll->z).
+    public void ApplyAction(float thrust01, Vector3 desiredBodyRate_PYR)
     {
         rlActive = true;
 
         if (proNav && proNav.enabled) proNav.enabled = false;
 
-        // Apply throttle scaling to the engine
-        thrust.throttle01 = Mathf.Clamp01(thrust01);
+        // Throttle
+        float tcmd = Mathf.Clamp01(thrust01);
+        if (tcmd < minThrustFloor) tcmd = minThrustFloor;
+        if (thrust) thrust.throttle01 = tcmd;
 
-        // Apply desired body rates through PID to convert to torques
-        pid.ApplyRateCommand(desiredBodyRateRad);
+        // Body-rate command
+        Vector3 cmd = desiredBodyRate_PYR * Mathf.Max(0f, rateGain);
+        if (cmd.magnitude > maxRateRad) cmd = cmd.normalized * maxRateRad;
+
+        // Feed PID to generate torques
+        pid.ApplyRateCommand(cmd);
     }
 
     public void DeactivateRL()
     {
         rlActive = false;
         if (proNav && !proNav.enabled) proNav.enabled = true;
-        thrust.throttle01 = 1f;
+        if (thrust) thrust.throttle01 = 1f;
     }
 }

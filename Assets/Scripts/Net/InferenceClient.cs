@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -12,7 +13,8 @@ public sealed class InferenceClient : MonoBehaviour
     [Header("Scene Refs")]
     [Tooltip("Set automatically by InterceptorSpawner on launch")]
     public GameObject currentInterceptor;
-    [Tooltip("ThreatSpawner provides CurrentThreat")]
+
+    [Tooltip("ThreatSpawner provides CurrentThreat transform")]
     public ThreatSpawner threatSpawner;
 
     [Header("Session State (read-only)")]
@@ -21,15 +23,30 @@ public sealed class InferenceClient : MonoBehaviour
     public float lastLatencyMs;
 
     // last received action (main thread only)
-    float   lastThrust01     = 0f;
-    Vector3 lastRateCmdBody  = Vector3.zero; // rad/s, body frame
+    float   lastThrust01    = 0f;
+    Vector3 lastRateCmdBody = Vector3.zero; // rad/s, body frame
+
+    // episode bookkeeping
+    string episodeId;
+    float  sessionStartTime;
+    int    simTick;
 
     Coroutine loop;
+
+    // cache for initial fuel mass per interceptor instance
+    readonly Dictionary<int, float> initialFuelKg = new Dictionary<int, float>();
+
+    // debug throttle
+    float logTimer;
 
     // ---- Public API ----
     public void StartSession()
     {
         if (loop != null) StopCoroutine(loop);
+        episodeId = $"unity_episode_{System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+        sessionStartTime = Time.time;
+        simTick = 0;
+        Debug.Log($"[InferenceClient] StartSession: {episodeId}");
         loop = StartCoroutine(SessionLoop());
     }
 
@@ -39,9 +56,12 @@ public sealed class InferenceClient : MonoBehaviour
         serverHealthy = false;
         if (loop != null) StopCoroutine(loop);
         loop = null;
+
         // zero out action to be safe
         lastThrust01 = 0f;
         lastRateCmdBody = Vector3.zero;
+
+        Debug.Log("[InferenceClient] StopSession");
     }
 
     public void SetInterceptor(GameObject go) => currentInterceptor = go;
@@ -52,6 +72,13 @@ public sealed class InferenceClient : MonoBehaviour
     void Awake()
     {
         if (!threatSpawner) threatSpawner = Object.FindFirstObjectByType<ThreatSpawner>();
+
+        // Guard against accidentally assigned prefab (not scene instance)
+        if (currentInterceptor && !currentInterceptor.scene.IsValid())
+        {
+            Debug.LogWarning("[InferenceClient] currentInterceptor is a prefab asset; clearing. It will be set by the spawner at runtime.");
+            currentInterceptor = null;
+        }
     }
 
     void Update()
@@ -96,9 +123,16 @@ public sealed class InferenceClient : MonoBehaviour
 
         while (sessionActive)
         {
-            // Build observation
-            var obs = BuildObservation();
-            var json = JsonUtility.ToJson(obs);
+            // Build request object matching server schema
+            var reqObj = BuildRequestObject(out bool ok);
+            if (!ok)
+            {
+                // If we have no interceptor or threat yet, just wait
+                yield return new WaitForSeconds(interval);
+                continue;
+            }
+
+            var json = JsonUtility.ToJson(reqObj);
             var body = Encoding.UTF8.GetBytes(json);
 
             using (var req = new UnityWebRequest(inferUrl, "POST"))
@@ -122,7 +156,7 @@ public sealed class InferenceClient : MonoBehaviour
                     if (resp != null && resp.action != null)
                     {
                         lastThrust01 = Mathf.Clamp01(resp.action.thrust_cmd);
-                        if (resp.action.rate_cmd_radps != null) // now a reference type, so null-check is valid
+                        if (resp.action.rate_cmd_radps != null)
                         {
                             lastRateCmdBody = new Vector3(
                                 resp.action.rate_cmd_radps.x,
@@ -138,148 +172,288 @@ public sealed class InferenceClient : MonoBehaviour
                 }
             }
 
+            // 1 Hz debug: show the last action
+            logTimer += interval;
+            if (logTimer >= 1f)
+            {
+                logTimer = 0f;
+                Debug.Log($"[InferenceClient] action thrust={lastThrust01:0.00} rate(p,y,r)=({lastRateCmdBody.x:0.00},{lastRateCmdBody.y:0.00},{lastRateCmdBody.z:0.00})  latency={lastLatencyMs:0}ms tick={simTick}");
+            }
+
+            simTick++;
             yield return new WaitForSeconds(interval);
         }
     }
 
-    Observation BuildObservation()
+    // ---------- Build server request per provided schema ----------
+    InferenceRequest BuildRequestObject(out bool ok)
     {
-        var o = new Observation
+        ok = false;
+
+        if (!currentInterceptor) return new InferenceRequest();
+        var threatTf = ThreatSpawner.CurrentThreat;
+        if (!threatTf) return new InferenceRequest();
+
+        var ibody = currentInterceptor.GetComponent<Rigidbody>();
+        var tbody = threatTf.GetComponent<Rigidbody>();
+
+        // World (Unity) vectors
+        Vector3 Pi_u = currentInterceptor.transform.position;
+        Vector3 Vi_u = ibody ? ibody.linearVelocity : Vector3.zero;
+        Vector3 Wi_u = ibody ? ibody.angularVelocity : Vector3.zero;
+
+        Vector3 Pt_u = threatTf.position;
+        Vector3 Vt_u = tbody ? tbody.linearVelocity : Vector3.zero;
+
+        // Convert to ENU if requested
+        Vector3 Pi = config.sendENU ? UnityToENU(Pi_u) : Pi_u;
+        Vector3 Vi = config.sendENU ? UnityToENU(Vi_u) : Vi_u;
+        Vector3 Wi = config.sendENU ? UnityToENU(Wi_u) : Wi_u;
+
+        Vector3 Pt = config.sendENU ? UnityToENU(Pt_u) : Pt_u;
+        Vector3 Vt = config.sendENU ? UnityToENU(Vt_u) : Vt_u;
+
+        // Orientation quaternions (ENU RH) as wxyz
+        float[] Qi = QuatWXYZ_ENU_FromUnity(currentInterceptor.transform);
+        float[] Qt = QuatWXYZ_ENU_FromUnity(threatTf);
+
+        // Guidance features (all in ENU world frame)
+        Vector3 r = Pt - Pi;                // interceptor -> threat
+        float range = r.magnitude;
+        Vector3 los = range > 1e-6f ? r / range : Vector3.forward;
+
+        Vector3 relV = Vt - Vi;             // threat relative to interceptor
+        // Closing speed: positive when approaching, negative when diverging
+        float closing = -Vector3.Dot(los, relV);
+
+        // LOS rate ω ≈ (r × r_dot) / |r|^2
+        Vector3 losRate = Vector3.zero;
+        float r2 = range * range;
+        if (r2 > 1e-6f) losRate = Vector3.Cross(r, relV) / r2;
+
+        // Fuel fraction
+        float fuelFrac = TryFuelFracNormalized(currentInterceptor);
+
+        // Meta/env
+        float tNow = Time.time - sessionStartTime;
+        float dt = Time.fixedDeltaTime;
+
+        var req = new InferenceRequest
         {
-            time = Time.time
+            meta = new MetaBlock
+            {
+                episode_id = episodeId,
+                t = tNow,
+                dt = dt,
+                sim_tick = simTick
+            },
+            frames = new FramesBlock
+            {
+                frame = "ENU",
+                unity_lh = true
+            },
+            blue = new BlueRedBlock
+            {
+                pos_m = ToArr(Pi),
+                vel_mps = ToArr(Vi),
+                quat_wxyz = Qi,
+                ang_vel_radps = ToArr(Wi),
+                fuel_frac = fuelFrac
+            },
+            red = new BlueRedBlock
+            {
+                pos_m = ToArr(Pt),
+                vel_mps = ToArr(Vt),
+                quat_wxyz = Qt
+            },
+            guidance = new GuidanceBlock
+            {
+                los_unit = ToArr(los),
+                los_rate_radps = ToArr(losRate),
+                range_m = range,
+                closing_speed_mps = closing,
+                fov_ok = true,
+                g_limit_ok = true
+            },
+            env = new EnvBlock
+            {
+                wind_mps = ToArr(config.wind_mps),
+                noise_std = config.noise_std,
+                episode_step = simTick,
+                max_steps = Mathf.Max(1, config.max_steps)
+            },
+            normalization = new NormBlock
+            {
+                obs_version = string.IsNullOrEmpty(config.obs_version) ? "obs_v1.0" : config.obs_version,
+                vecnorm_stats_id = config.vecnorm_stats_id
+            }
         };
 
-        // Interceptor (blue)
-        if (currentInterceptor)
-        {
-            var tr = currentInterceptor.transform;
-            var rb = currentInterceptor.GetComponent<Rigidbody>();
-
-            var p = tr.position;
-            var v = rb ? rb.linearVelocity : Vector3.zero;
-            var fwd = tr.forward;
-            var up = tr.up;
-            var w = rb ? rb.angularVelocity : Vector3.zero;
-
-            if (config.sendENU)
-            {
-                p = UnityToENU(p);
-                v = UnityToENU(v);
-                fwd = UnityToENU(fwd);
-                up = UnityToENU(up);
-                w = UnityToENU(w); // angular velocity axes permute the same way
-            }
-
-            o.blue = new AgentState
-            {
-                id = config.interceptorId,
-                p = new Vec3(p),
-                v = new Vec3(v),
-                fwd = new Vec3(fwd),
-                up = new Vec3(up),
-                w = new Vec3(w),
-                fuel_frac = TryFuelFrac(currentInterceptor)
-            };
-        }
-
-        // Threat (red)
-        var threatTf = ThreatSpawner.CurrentThreat;
-        if (threatTf)
-        {
-            var tr = threatTf;
-            var rb = tr.GetComponent<Rigidbody>();
-
-            var p = tr.position;
-            var v = rb ? rb.linearVelocity : Vector3.zero;
-            var fwd = tr.forward;
-            var up = tr.up;
-
-            if (config.sendENU)
-            {
-                p = UnityToENU(p);
-                v = UnityToENU(v);
-                fwd = UnityToENU(fwd);
-                up = UnityToENU(up);
-            }
-
-            o.red = new AgentState
-            {
-                id = config.threatId,
-                p = new Vec3(p),
-                v = new Vec3(v),
-                fwd = new Vec3(fwd),
-                up = new Vec3(up)
-            };
-        }
-
-        return o;
+        ok = true;
+        return req;
     }
 
-    static float TryFuelFrac(GameObject go)
-    {
-        var fuel = go.GetComponent<FuelSystem>();
-        if (!fuel) return 0f;
-        // Placeholder: send mass as a pseudo-fraction (adjust if you track initial mass)
-        return Mathf.Clamp01(fuel.fuelKg / Mathf.Max(0.0001f, fuel.fuelKg + 0.0001f));
-    }
+    // ---------- Helpers ----------
+    static float[] ToArr(Vector3 v) => new float[] { v.x, v.y, v.z };
 
     // Unity (X,Y,Z) -> ENU (x=X, y=Z, z=Y)
     public static Vector3 UnityToENU(Vector3 v) => new Vector3(v.x, v.z, v.y);
+
+    // Build ENU quaternion (wxyz) from Unity transform by converting object axes to ENU
+    // Columns of world rotation matrix in ENU should be: [right_ENU, up_ENU, forward_ENU]
+    static float[] QuatWXYZ_ENU_FromUnity(Transform t)
+    {
+        Vector3 ex = UnityToENU(t.right).normalized;   // object right in ENU
+        Vector3 ey = UnityToENU(t.up).normalized;      // object up    in ENU
+        Vector3 ez = UnityToENU(t.forward).normalized; // object fwd   in ENU
+
+        Quaternion q = QuaternionFromBasisRH(ex, ey, ez);
+        return new float[] { q.w, q.x, q.y, q.z };
+    }
+
+    // Create RH quaternion from orthonormal basis (columns ex,ey,ez)
+    static Quaternion QuaternionFromBasisRH(Vector3 ex, Vector3 ey, Vector3 ez)
+    {
+        float m00 = ex.x, m01 = ey.x, m02 = ez.x;
+        float m10 = ex.y, m11 = ey.y, m12 = ez.y;
+        float m20 = ex.z, m21 = ey.z, m22 = ez.z;
+
+        float trace = m00 + m11 + m22;
+        float w, x, y, z;
+
+        if (trace > 0f)
+        {
+            float s = Mathf.Sqrt(trace + 1f) * 2f;
+            w = 0.25f * s;
+            x = (m21 - m12) / s;
+            y = (m02 - m20) / s;
+            z = (m10 - m01) / s;
+        }
+        else if (m00 > m11 && m00 > m22)
+        {
+            float s = Mathf.Sqrt(1f + m00 - m11 - m22) * 2f;
+            w = (m21 - m12) / s;
+            x = 0.25f * s;
+            y = (m01 + m10) / s;
+            z = (m02 + m20) / s;
+        }
+        else if (m11 > m22)
+        {
+            float s = Mathf.Sqrt(1f + m11 - m00 - m22) * 2f;
+            w = (m02 - m20) / s;
+            x = (m01 + m10) / s;
+            y = 0.25f * s;
+            z = (m12 + m21) / s;
+        }
+        else
+        {
+            float s = Mathf.Sqrt(1f + m22 - m00 - m11) * 2f;
+            w = (m10 - m01) / s;
+            x = (m02 + m20) / s;
+            y = (m12 + m21) / s;
+            z = 0.25f * s;
+        }
+        return new Quaternion(x, y, z, w);
+    }
+
+    float TryFuelFracNormalized(GameObject go)
+    {
+        var fuel = go.GetComponent<FuelSystem>();
+        if (!fuel) return 0f;
+        int id = go.GetInstanceID();
+        if (!initialFuelKg.ContainsKey(id))
+            initialFuelKg[id] = Mathf.Max(1e-6f, fuel.fuelKg); // capture starting fuel as "max"
+
+        return Mathf.Clamp01(fuel.fuelKg / initialFuelKg[id]);
+    }
 }
 
-// -------- Simple DTOs (JsonUtility-compatible) --------
+// ---------------- DTOs matching server schema ----------------
 [System.Serializable]
-public sealed class Observation
+public sealed class InferenceRequest
 {
-    public float time;
-    public AgentState blue; // interceptor
-    public AgentState red;  // threat
+    public MetaBlock meta;
+    public FramesBlock frames;
+    public BlueRedBlock blue;
+    public BlueRedBlock red;
+    public GuidanceBlock guidance;
+    public EnvBlock env;
+    public NormBlock normalization;
 }
 
-[System.Serializable]
-public sealed class AgentState
+[System.Serializable] public sealed class MetaBlock
 {
-    public string id;
-    public Vec3 p;
-    public Vec3 v;
-    public Vec3 fwd;
-    public Vec3 up;
-    public Vec3 w;       // optional (blue only)
-    public float fuel_frac; // optional
+    public string episode_id;
+    public float t;
+    public float dt;
+    public int sim_tick;
 }
 
-[System.Serializable]
-public sealed class InferenceResponse
+[System.Serializable] public sealed class FramesBlock
+{
+    public string frame;    // "ENU"
+    public bool unity_lh;   // true
+}
+
+[System.Serializable] public sealed class BlueRedBlock
+{
+    public float[] pos_m;
+    public float[] vel_mps;
+    public float[] quat_wxyz;      // [w,x,y,z]
+    public float[] ang_vel_radps;  // optional (only blue)
+    public float   fuel_frac;      // optional (only blue)
+}
+
+[System.Serializable] public sealed class GuidanceBlock
+{
+    public float[] los_unit;
+    public float[] los_rate_radps;
+    public float   range_m;
+    public float   closing_speed_mps;
+    public bool    fov_ok;
+    public bool    g_limit_ok;
+}
+
+[System.Serializable] public sealed class EnvBlock
+{
+    public float[] wind_mps;
+    public float   noise_std;
+    public int     episode_step;
+    public int     max_steps;
+}
+
+[System.Serializable] public sealed class NormBlock
+{
+    public string obs_version;
+    public string vecnorm_stats_id;
+}
+
+[System.Serializable] public sealed class InferenceResponse
 {
     public ActionBlock action;
-    public SimulationState simulation_state; // optional, ignored
+    public SimulationState simulation_state; // optional
 }
 
-[System.Serializable]
-public sealed class ActionBlock
+[System.Serializable] public sealed class ActionBlock
 {
     public float thrust_cmd;
-
-    // Use a reference type so null-check works when the field is absent in JSON.
-    public Vec3C rate_cmd_radps; // x=pitch, y=yaw, z=roll (body-frame)
+    public Vec3C rate_cmd_radps; // x=pitch, y=yaw, z=roll
 }
 
-[System.Serializable]
-public sealed class SimulationState
+[System.Serializable] public sealed class SimulationState
 {
-    public AgentState blue;
-    public AgentState red;
+    public AgentStateC blue;
+    public AgentStateC red;
 }
 
-[System.Serializable]
-public struct Vec3
+[System.Serializable] public sealed class AgentStateC
 {
-    public float x, y, z;
-    public Vec3(Vector3 v) { x = v.x; y = v.y; z = v.z; }
+    public float[] pos_m;
+    public float[] vel_mps;
+    public float[] quat_wxyz;
 }
 
-[System.Serializable]
-public sealed class Vec3C
+[System.Serializable] public sealed class Vec3C
 {
     public float x, y, z;
 }

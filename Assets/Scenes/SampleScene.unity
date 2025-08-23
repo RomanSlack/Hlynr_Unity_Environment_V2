@@ -515,7 +515,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   missilePrefab: {fileID: 6149331585787757335, guid: 5321552adbd054ecbb82cc7d75763a8a, type: 3}
-  launchImpulse: 10
+  launchImpulse: 1
 --- !u!4 &456882730
 Transform:
   m_ObjectHideFlags: 0
@@ -562,6 +562,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   client: {fileID: 547084556}
+  logEverySecond: 1
+  showHud: 1
+  testOverride: 1
+  testOverrideSecs: 3
+  testYawRadPerSec: 0.5
 --- !u!114 &547084556
 MonoBehaviour:
   m_ObjectHideFlags: 0

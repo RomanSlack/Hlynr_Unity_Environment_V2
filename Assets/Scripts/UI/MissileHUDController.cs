@@ -43,7 +43,7 @@ public sealed class MissileHUDController : MonoBehaviour
 
     void Update()
     {
-        Debug.Log("HUD Update() running");
+        // Debug.Log("HUD Update() running");
         if (currentMissile == null) return;
 
         speedLbl.text = $"Speed: {rb.linearVelocity.magnitude:0} m/s";
