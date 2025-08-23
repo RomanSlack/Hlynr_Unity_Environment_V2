@@ -564,7 +564,7 @@ MonoBehaviour:
   client: {fileID: 547084556}
   logEverySecond: 1
   showHud: 1
-  testOverride: 1
+  testOverride: 0
   testOverrideSecs: 3
   testYawRadPerSec: 0.5
 --- !u!114 &547084556

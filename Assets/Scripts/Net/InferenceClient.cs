@@ -13,7 +13,6 @@ public sealed class InferenceClient : MonoBehaviour
     [Header("Scene Refs")]
     [Tooltip("Set automatically by InterceptorSpawner on launch")]
     public GameObject currentInterceptor;
-
     [Tooltip("ThreatSpawner provides CurrentThreat transform")]
     public ThreatSpawner threatSpawner;
 
@@ -38,6 +37,7 @@ public sealed class InferenceClient : MonoBehaviour
 
     // debug throttle
     float logTimer;
+    bool  loggedLast422 = false;
 
     // ---- Public API ----
     public void StartSession()
@@ -46,6 +46,7 @@ public sealed class InferenceClient : MonoBehaviour
         episodeId = $"unity_episode_{System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
         sessionStartTime = Time.time;
         simTick = 0;
+        loggedLast422 = false;
         Debug.Log($"[InferenceClient] StartSession: {episodeId}");
         loop = StartCoroutine(SessionLoop());
     }
@@ -123,7 +124,7 @@ public sealed class InferenceClient : MonoBehaviour
 
         while (sessionActive)
         {
-            // Build request object matching server schema
+            // Build request object matching server schema (sanitized)
             var reqObj = BuildRequestObject(out bool ok);
             if (!ok)
             {
@@ -148,6 +149,8 @@ public sealed class InferenceClient : MonoBehaviour
 
                 if (req.result == UnityWebRequest.Result.Success && req.responseCode == 200)
                 {
+                    loggedLast422 = false;
+
                     var txt = req.downloadHandler.text;
                     InferenceResponse resp = null;
                     try { resp = JsonUtility.FromJson<InferenceResponse>(txt); }
@@ -159,14 +162,20 @@ public sealed class InferenceClient : MonoBehaviour
                         if (resp.action.rate_cmd_radps != null)
                         {
                             lastRateCmdBody = new Vector3(
-                                resp.action.rate_cmd_radps.x,
-                                resp.action.rate_cmd_radps.y,
-                                resp.action.rate_cmd_radps.z);
+                                San(resp.action.rate_cmd_radps.x),
+                                San(resp.action.rate_cmd_radps.y),
+                                San(resp.action.rate_cmd_radps.z));
                         }
                     }
                 }
                 else
                 {
+                    // 422 or other: log server response and the JSON we sent (once per failure burst)
+                    if (!loggedLast422)
+                    {
+                        loggedLast422 = true;
+                        Debug.LogError($"[InferenceClient] HTTP {(int)req.responseCode} {req.error}\nServer says: {req.downloadHandler?.text}\nLast JSON sent:\n{json}");
+                    }
                     // network hiccup: hold last command, optionally decay thrust
                     lastThrust01 = Mathf.MoveTowards(lastThrust01, 0f, 0.25f);
                 }
@@ -185,7 +194,7 @@ public sealed class InferenceClient : MonoBehaviour
         }
     }
 
-    // ---------- Build server request per provided schema ----------
+    // ---------- Build server request per provided schema (with sanitization) ----------
     InferenceRequest BuildRequestObject(out bool ok)
     {
         ok = false;
@@ -213,30 +222,34 @@ public sealed class InferenceClient : MonoBehaviour
         Vector3 Pt = config.sendENU ? UnityToENU(Pt_u) : Pt_u;
         Vector3 Vt = config.sendENU ? UnityToENU(Vt_u) : Vt_u;
 
-        // Orientation quaternions (ENU RH) as wxyz
+        // Orientation quaternions (ENU RH) as wxyz (normalized)
         float[] Qi = QuatWXYZ_ENU_FromUnity(currentInterceptor.transform);
         float[] Qt = QuatWXYZ_ENU_FromUnity(threatTf);
 
         // Guidance features (all in ENU world frame)
         Vector3 r = Pt - Pi;                // interceptor -> threat
-        float range = r.magnitude;
-        Vector3 los = range > 1e-6f ? r / range : Vector3.forward;
+        float range = San(Mathf.Max(0f, r.magnitude));
+        Vector3 los = range > 1e-6f ? r / range : new Vector3(1f, 0f, 0f); // safe default
 
         Vector3 relV = Vt - Vi;             // threat relative to interceptor
         // Closing speed: positive when approaching, negative when diverging
-        float closing = -Vector3.Dot(los, relV);
+        float closing = San(-Vector3.Dot(los, relV));
 
         // LOS rate ω ≈ (r × r_dot) / |r|^2
         Vector3 losRate = Vector3.zero;
         float r2 = range * range;
-        if (r2 > 1e-6f) losRate = Vector3.Cross(r, relV) / r2;
+        if (r2 > 1e-6f)
+        {
+            losRate = Vector3.Cross(r, relV) / r2;
+            losRate = San(losRate);
+        }
 
         // Fuel fraction
-        float fuelFrac = TryFuelFracNormalized(currentInterceptor);
+        float fuelFrac = San01(TryFuelFracNormalized(currentInterceptor));
 
         // Meta/env
-        float tNow = Time.time - sessionStartTime;
-        float dt = Time.fixedDeltaTime;
+        float tNow = San(Time.time - sessionStartTime);
+        float dt = San(Time.fixedDeltaTime);
 
         var req = new InferenceRequest
         {
@@ -254,22 +267,24 @@ public sealed class InferenceClient : MonoBehaviour
             },
             blue = new BlueRedBlock
             {
-                pos_m = ToArr(Pi),
-                vel_mps = ToArr(Vi),
-                quat_wxyz = Qi,
-                ang_vel_radps = ToArr(Wi),
+                pos_m = Arr3(San(Pi)),
+                vel_mps = Arr3(San(Vi)),
+                quat_wxyz = Arr4(Qi),
+                ang_vel_radps = Arr3(San(Wi)),
                 fuel_frac = fuelFrac
             },
             red = new BlueRedBlock
             {
-                pos_m = ToArr(Pt),
-                vel_mps = ToArr(Vt),
-                quat_wxyz = Qt
+                pos_m = Arr3(San(Pt)),
+                vel_mps = Arr3(San(Vt)),
+                quat_wxyz = Arr4(Qi),
+                ang_vel_radps = null, // optional; omit for red
+                fuel_frac = 0f        // optional; omit for red
             },
             guidance = new GuidanceBlock
             {
-                los_unit = ToArr(los),
-                los_rate_radps = ToArr(losRate),
+                los_unit = Arr3(San(los)),
+                los_rate_radps = Arr3(San(losRate)),
                 range_m = range,
                 closing_speed_mps = closing,
                 fov_ok = true,
@@ -277,8 +292,8 @@ public sealed class InferenceClient : MonoBehaviour
             },
             env = new EnvBlock
             {
-                wind_mps = ToArr(config.wind_mps),
-                noise_std = config.noise_std,
+                wind_mps = Arr3(San(config.wind_mps)),
+                noise_std = San(config.noise_std),
                 episode_step = simTick,
                 max_steps = Mathf.Max(1, config.max_steps)
             },
@@ -293,14 +308,25 @@ public sealed class InferenceClient : MonoBehaviour
         return req;
     }
 
-    // ---------- Helpers ----------
-    static float[] ToArr(Vector3 v) => new float[] { v.x, v.y, v.z };
+    // ---------- Helpers & Sanitizers ----------
+    static float San(float x) => (float)(float.IsNaN(x) || float.IsInfinity(x) ? 0.0 : x);
+
+    static Vector3 San(Vector3 v) => new Vector3(San(v.x), San(v.y), San(v.z));
+
+    static float San01(float x) => Mathf.Clamp01(San(x));
+
+    static float[] Arr3(Vector3 v) => new float[] { v.x, v.y, v.z };
+
+    static float[] Arr4(float[] q)
+    {
+        if (q == null || q.Length != 4) return new float[] { 1f, 0f, 0f, 0f };
+        return q;
+    }
 
     // Unity (X,Y,Z) -> ENU (x=X, y=Z, z=Y)
     public static Vector3 UnityToENU(Vector3 v) => new Vector3(v.x, v.z, v.y);
 
-    // Build ENU quaternion (wxyz) from Unity transform by converting object axes to ENU
-    // Columns of world rotation matrix in ENU should be: [right_ENU, up_ENU, forward_ENU]
+    // Build ENU quaternion (wxyz) from Unity transform: columns of ENU basis = [right_ENU, up_ENU, forward_ENU]
     static float[] QuatWXYZ_ENU_FromUnity(Transform t)
     {
         Vector3 ex = UnityToENU(t.right).normalized;   // object right in ENU
@@ -308,7 +334,17 @@ public sealed class InferenceClient : MonoBehaviour
         Vector3 ez = UnityToENU(t.forward).normalized; // object fwd   in ENU
 
         Quaternion q = QuaternionFromBasisRH(ex, ey, ez);
-        return new float[] { q.w, q.x, q.y, q.z };
+        // normalize and sanitize
+        float mag = Mathf.Sqrt(q.w*q.w + q.x*q.x + q.y*q.y + q.z*q.z);
+        if (mag > 1e-8f)
+        {
+            q.w /= mag; q.x /= mag; q.y /= mag; q.z /= mag;
+        }
+        else
+        {
+            q = Quaternion.identity;
+        }
+        return new float[] { San(q.w), San(q.x), San(q.y), San(q.z) };
     }
 
     // Create RH quaternion from orthonormal basis (columns ex,ey,ez)
@@ -363,7 +399,6 @@ public sealed class InferenceClient : MonoBehaviour
         int id = go.GetInstanceID();
         if (!initialFuelKg.ContainsKey(id))
             initialFuelKg[id] = Mathf.Max(1e-6f, fuel.fuelKg); // capture starting fuel as "max"
-
         return Mathf.Clamp01(fuel.fuelKg / initialFuelKg[id]);
     }
 }
