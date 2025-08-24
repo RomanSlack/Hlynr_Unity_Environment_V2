@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -13,6 +14,7 @@ public sealed class InferenceClient : MonoBehaviour
     [Header("Scene Refs")]
     [Tooltip("Set automatically by InterceptorSpawner on launch")]
     public GameObject currentInterceptor;
+
     [Tooltip("ThreatSpawner provides CurrentThreat transform")]
     public ThreatSpawner threatSpawner;
 
@@ -35,9 +37,53 @@ public sealed class InferenceClient : MonoBehaviour
     // cache for initial fuel mass per interceptor instance
     readonly Dictionary<int, float> initialFuelKg = new Dictionary<int, float>();
 
-    // debug throttle
+    // debug
     float logTimer;
     bool  loggedLast422 = false;
+
+    [Header("Debug Dump")]
+    [Tooltip("Dump first N requests as JSON files to persistentDataPath for diffing with Python client.")]
+    public bool dumpFirstNRequests = true;
+    public int dumpN = 3;
+
+    void Awake()
+    {
+        if (!threatSpawner) threatSpawner = Object.FindFirstObjectByType<ThreatSpawner>();
+
+        // Guard against accidentally assigned prefab (not scene instance)
+        if (currentInterceptor && !currentInterceptor.scene.IsValid())
+        {
+            Debug.LogWarning("[InferenceClient] currentInterceptor is a prefab asset; clearing. It will be set by the spawner at runtime.");
+            currentInterceptor = null;
+        }
+    }
+
+    void Update()
+    {
+        // Hotkeys:
+        var kb = UnityEngine.InputSystem.Keyboard.current;
+        if (kb != null)
+        {
+            if (kb.yKey.wasPressedThisFrame) StartSession();
+            if (kb.uKey.wasPressedThisFrame) StopSession();
+
+            // Diagnostics: toggle frames mid-run (for testing only)
+            if (kb.f1Key.wasPressedThisFrame)
+            {
+                config.sendENU = !config.sendENU;
+                Debug.Log($"[InferenceClient] Toggled sendENU -> {config.sendENU}");
+            }
+            if (kb.f2Key.wasPressedThisFrame)
+            {
+                // flip unity_lh flag only (keeps ENU mapping as-is)
+                _unityLHOverride = !_unityLHOverride;
+                Debug.Log($"[InferenceClient] Toggled unity_lh -> {_unityLHOverride}");
+            }
+        }
+    }
+
+    // Local override for frames.unity_lh diagnostics
+    bool _unityLHOverride = true;
 
     // ---- Public API ----
     public void StartSession()
@@ -69,29 +115,6 @@ public sealed class InferenceClient : MonoBehaviour
 
     public float GetThrust01() => lastThrust01;
     public Vector3 GetDesiredBodyRates() => lastRateCmdBody;
-
-    void Awake()
-    {
-        if (!threatSpawner) threatSpawner = Object.FindFirstObjectByType<ThreatSpawner>();
-
-        // Guard against accidentally assigned prefab (not scene instance)
-        if (currentInterceptor && !currentInterceptor.scene.IsValid())
-        {
-            Debug.LogWarning("[InferenceClient] currentInterceptor is a prefab asset; clearing. It will be set by the spawner at runtime.");
-            currentInterceptor = null;
-        }
-    }
-
-    void Update()
-    {
-        // Hotkeys: Y start, U stop
-        var kb = UnityEngine.InputSystem.Keyboard.current;
-        if (kb != null)
-        {
-            if (kb.yKey.wasPressedThisFrame) StartSession();
-            if (kb.uKey.wasPressedThisFrame) StopSession();
-        }
-    }
 
     IEnumerator SessionLoop()
     {
@@ -125,7 +148,7 @@ public sealed class InferenceClient : MonoBehaviour
         while (sessionActive)
         {
             // Build request object matching server schema (sanitized)
-            var reqObj = BuildRequestObject(out bool ok);
+            var reqObj = BuildRequestObject(out bool ok, out float closingPos, out float closingNeg);
             if (!ok)
             {
                 // If we have no interceptor or threat yet, just wait
@@ -135,6 +158,17 @@ public sealed class InferenceClient : MonoBehaviour
 
             var json = JsonUtility.ToJson(reqObj);
             var body = Encoding.UTF8.GetBytes(json);
+
+            // Dump first N requests for offline comparison
+            if (dumpFirstNRequests && simTick < dumpN)
+            {
+                var path = Path.Combine(Application.persistentDataPath, $"inference_req_tick{simTick}.json");
+                try { File.WriteAllText(path, json); Debug.Log($"[InferenceClient] Wrote {path}"); } catch {}
+            }
+
+            // Show both interpretations of closing speed (sanity aid)
+            if (simTick % 10 == 0)
+                Debug.Log($"[InferenceClient] closing(+approach)={closingPos:0.00}  closingAlt={closingNeg:0.00}  range={reqObj.guidance.range_m:0.0}m");
 
             using (var req = new UnityWebRequest(inferUrl, "POST"))
             {
@@ -195,9 +229,11 @@ public sealed class InferenceClient : MonoBehaviour
     }
 
     // ---------- Build server request per provided schema (with sanitization) ----------
-    InferenceRequest BuildRequestObject(out bool ok)
+    InferenceRequest BuildRequestObject(out bool ok, out float closingPos, out float closingNeg)
     {
         ok = false;
+        closingPos = 0f;
+        closingNeg = 0f;
 
         if (!currentInterceptor) return new InferenceRequest();
         var threatTf = ThreatSpawner.CurrentThreat;
@@ -232,8 +268,12 @@ public sealed class InferenceClient : MonoBehaviour
         Vector3 los = range > 1e-6f ? r / range : new Vector3(1f, 0f, 0f); // safe default
 
         Vector3 relV = Vt - Vi;             // threat relative to interceptor
-        // Closing speed: positive when approaching, negative when diverging
-        float closing = San(-Vector3.Dot(los, relV));
+
+        // Two definitions to compare:
+        // closingPos: positive when approaching (our current choice)
+        closingPos = San(-Vector3.Dot(los, relV));
+        // closingNeg: negative when approaching (alternate)
+        closingNeg = San(Vector3.Dot(los, relV));
 
         // LOS rate ω ≈ (r × r_dot) / |r|^2
         Vector3 losRate = Vector3.zero;
@@ -263,7 +303,7 @@ public sealed class InferenceClient : MonoBehaviour
             frames = new FramesBlock
             {
                 frame = "ENU",
-                unity_lh = true
+                unity_lh = _unityLHOverride
             },
             blue = new BlueRedBlock
             {
@@ -277,7 +317,7 @@ public sealed class InferenceClient : MonoBehaviour
             {
                 pos_m = Arr3(San(Pt)),
                 vel_mps = Arr3(San(Vt)),
-                quat_wxyz = Arr4(Qi),
+                quat_wxyz = Arr4(Qt),
                 ang_vel_radps = null, // optional; omit for red
                 fuel_frac = 0f        // optional; omit for red
             },
@@ -286,7 +326,7 @@ public sealed class InferenceClient : MonoBehaviour
                 los_unit = Arr3(San(los)),
                 los_rate_radps = Arr3(San(losRate)),
                 range_m = range,
-                closing_speed_mps = closing,
+                closing_speed_mps = closingPos, // <-- currently using "positive when approaching"
                 fov_ok = true,
                 g_limit_ok = true
             },
@@ -310,13 +350,10 @@ public sealed class InferenceClient : MonoBehaviour
 
     // ---------- Helpers & Sanitizers ----------
     static float San(float x) => (float)(float.IsNaN(x) || float.IsInfinity(x) ? 0.0 : x);
-
     static Vector3 San(Vector3 v) => new Vector3(San(v.x), San(v.y), San(v.z));
-
     static float San01(float x) => Mathf.Clamp01(San(x));
 
     static float[] Arr3(Vector3 v) => new float[] { v.x, v.y, v.z };
-
     static float[] Arr4(float[] q)
     {
         if (q == null || q.Length != 4) return new float[] { 1f, 0f, 0f, 0f };
@@ -336,14 +373,8 @@ public sealed class InferenceClient : MonoBehaviour
         Quaternion q = QuaternionFromBasisRH(ex, ey, ez);
         // normalize and sanitize
         float mag = Mathf.Sqrt(q.w*q.w + q.x*q.x + q.y*q.y + q.z*q.z);
-        if (mag > 1e-8f)
-        {
-            q.w /= mag; q.x /= mag; q.y /= mag; q.z /= mag;
-        }
-        else
-        {
-            q = Quaternion.identity;
-        }
+        if (mag > 1e-8f) { q.w /= mag; q.x /= mag; q.y /= mag; q.z /= mag; }
+        else { q = Quaternion.identity; }
         return new float[] { San(q.w), San(q.x), San(q.y), San(q.z) };
     }
 
