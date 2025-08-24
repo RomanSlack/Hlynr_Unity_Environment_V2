@@ -15,7 +15,7 @@ namespace Replay
 
         [Header("Prefabs")]
         public GameObject interceptorPrefab;  // your Missile_Prefab
-        public GameObject threatPrefab;       // your ThreatRocket prefab (or simple cube)
+        public GameObject threatPrefab;       // your ThreatRocket prefab (or any simple visual)
 
         [Header("Modes")]
         public ReplayMode interceptorMode = ReplayMode.PhysicsFromActions;
@@ -48,7 +48,7 @@ namespace Replay
         void Awake()
         {
             LoadEpisode(ResolvePath(episodePath));
-            SpawnAgents();
+            SpawnAgentsAndPlaceAtFirstFrame();
 
             if (matchHeaderFixedDelta && header != null && header.meta != null && header.meta.dt_nominal > 0f)
             {
@@ -59,6 +59,8 @@ namespace Replay
             paused = !autoPlay;
             t = (frames.Count > 0 ? frames[0].t : 0f);
             idx = 0;
+
+            // We already snapped to first frame during spawn; keep this for consistency
             SnapToTime(t, force:true);
         }
 
@@ -114,7 +116,7 @@ namespace Replay
                 Vector3 pA = new Vector3(A.p[0], A.p[1], A.p[2]);
                 Vector3 pB = (B != null && B.p != null) ? new Vector3(B.p[0], B.p[1], B.p[2]) : pA;
 
-                // Convert/world->body quats to Unity, then slerp in Unity space
+                // Convert world->body quats (ENU) to Unity rotation (body->world), then slerp
                 Quaternion qA = EnuUnity.UnityRotationFromEnuWorldToBody(A.q[0], A.q[1], A.q[2], A.q[3]);
                 Quaternion qB = (B != null && B.q != null)
                     ? EnuUnity.UnityRotationFromEnuWorldToBody(B.q[0], B.q[1], B.q[2], B.q[3]) : qA;
@@ -171,33 +173,66 @@ namespace Replay
             return lo;
         }
 
-        void SpawnAgents()
+        void SpawnAgentsAndPlaceAtFirstFrame()
         {
-            // Use first timestep (after header) to place initial pose
             var first = frames.Count > 0 ? frames[0] : null;
-            if (first == null || first.agents == null) { Debug.LogError("[ReplayDirector] No frames/agents."); return; }
+            if (first == null || first.agents == null)
+            {
+                Debug.LogError("[ReplayDirector] No frames/agents.");
+                return;
+            }
 
-            // Interceptor
+            // Convert first-frame poses
+            Pose interceptPose = GetUnityPose(first.agents.interceptor_0);
+            Pose threatPose    = GetUnityPose(first.agents.threat_0);
+
+            // Spawn Interceptor
             if (interceptorPrefab)
             {
-                var go = Instantiate(interceptorPrefab);
+                var go = Instantiate(interceptorPrefab, interceptPose.position, interceptPose.rotation);
                 go.name = "Interceptor_Replay";
+                TemporarilyDisableColliders(go, true);
+
                 blue = go.GetComponent<AgentReplayer>();
                 if (!blue) blue = go.AddComponent<AgentReplayer>();
                 blue.agentId = "interceptor_0";
                 blue.ConfigureForMode(interceptorMode);
+
+                TemporarilyDisableColliders(go, false);
             }
 
-            // Threat
+            // Spawn Threat
             if (threatPrefab)
             {
-                var go = Instantiate(threatPrefab);
+                var go = Instantiate(threatPrefab, threatPose.position, threatPose.rotation);
                 go.name = "Threat_Replay";
+                TemporarilyDisableColliders(go, true);
+
                 red = go.GetComponent<AgentReplayer>();
                 if (!red) red = go.AddComponent<AgentReplayer>();
                 red.agentId = "threat_0";
                 red.ConfigureForMode(threatMode);
+
+                TemporarilyDisableColliders(go, false);
             }
+        }
+
+        static void TemporarilyDisableColliders(GameObject go, bool disable)
+        {
+            var cols = go.GetComponentsInChildren<Collider>(true);
+            foreach (var c in cols) c.enabled = !disable;
+        }
+
+        static Pose GetUnityPose(AgentState s)
+        {
+            // ENU -> Unity position
+            Vector3 pENU = new Vector3(s.p[0], s.p[1], s.p[2]);
+            Vector3 pU   = EnuUnity.ENUtoUnity(pENU);
+
+            // ENU world->body quaternion -> Unity rotation (body->world)
+            Quaternion qU = EnuUnity.UnityRotationFromEnuWorldToBody(s.q[0], s.q[1], s.q[2], s.q[3]);
+
+            return new Pose(pU, qU);
         }
 
         void LoadEpisode(string path)
@@ -258,13 +293,12 @@ namespace Replay
         string ResolvePath(string relOrAbs)
         {
             if (Path.IsPathRooted(relOrAbs)) return relOrAbs;
-            // StreamingAssets is backed by filesystem on desktop
             return Path.Combine(Application.streamingAssetsPath, relOrAbs);
         }
 
         void OnGUI()
         {
-            GUILayout.BeginArea(new Rect(8, 8, 360, 120), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(8, 8, 380, 130), GUI.skin.box);
             GUILayout.Label($"Episode: {epId}");
             GUILayout.Label($"t = {t:0.00}s   speed = {playSpeed:0.##}x   paused = {paused}");
             GUILayout.Label($"Frames: {frames.Count}   dt_nominal = {dtNominal:0.###}s");
