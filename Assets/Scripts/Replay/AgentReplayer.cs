@@ -50,7 +50,7 @@ namespace Replay
                 if (rb)
                 {
                     rb.isKinematic = true;
-                    // Do NOT set rb.velocity/angVel on kinematic bodies (Unity will warn).
+                    // Do NOT set rb.velocity/angVel on kinematic bodies (Unity warns).
                     rb.useGravity = false;
                 }
             }
@@ -76,7 +76,39 @@ namespace Replay
             }
         }
 
-        // ----- Kinematic application -----
+        /// Make the body kinematic on/off and zero velocities when turning on.
+        public void SetKinematic(bool kinematic)
+        {
+            if (!rb) return;
+            rb.isKinematic = kinematic;
+            if (kinematic)
+            {
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.useGravity = false;
+            }
+        }
+
+        /// Force a kinematic pose write (safe even if rb was non-kinematic; restores prior state).
+        public void ForceKinematicPose(Vector3 posUnity, Quaternion rotUnity)
+        {
+            if (rb)
+            {
+                bool prevKin = rb.isKinematic;
+                rb.isKinematic = true;
+                rb.MovePosition(posUnity);
+                rb.MoveRotation(rotUnity);
+                rb.linearVelocity = Vector3.zero;
+                rb.angularVelocity = Vector3.zero;
+                rb.isKinematic = prevKin;
+            }
+            else
+            {
+                transform.SetPositionAndRotation(posUnity, rotUnity);
+            }
+        }
+
+        // ----- Kinematic application during playback -----
         public void ApplyKinematic(Vector3 posUnity, Quaternion rotUnity)
         {
             if (!rb)
@@ -91,18 +123,24 @@ namespace Replay
         }
 
         // ----- Physics-from-actions -----
-        // Action vector u: [ pitch about Y, yaw about Z, roll about X, thrust, aux, aux ]
-        // PID expects body rates as (x=rollX, y=pitchY, z=yawZ)
+        // Action vector u (from JSONL):
+        //   [0] pitch about body Y (rad/s)
+        //   [1] yaw   about body Z (rad/s)
+        //   [2] roll  about body X (rad/s)
+        //   [3] thrust in [0,1] (float)
+        //   [4],[5] reserved
+        //
+        // Our control expects body rates as (x=roll, y=pitch, z=yaw).
         public void ApplyActions(float[] u, float minThrustFloor = 0f)
         {
             if (u == null || u.Length < 4 || mux == null) return;
 
-            float pitchY  = u[0];
-            float yawZ    = u[1];
-            float rollX   = u[2];
+            float pitchY   = u[0];
+            float yawZ     = u[1];
+            float rollX    = u[2];
             float thrust01 = Mathf.Max(minThrustFloor, Mathf.Clamp01(u[3]));
 
-            var rateBody = new Vector3(rollX, pitchY, yawZ); // (x=rollX, y=pitchY, z=yawZ)
+            var rateBody = new Vector3(rollX, pitchY, yawZ); // (x=roll, y=pitch, z=yaw)
             mux.ApplyAction(thrust01, rateBody);
         }
     }

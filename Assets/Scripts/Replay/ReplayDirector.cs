@@ -10,12 +10,12 @@ namespace Replay
     public sealed class ReplayDirector : MonoBehaviour
     {
         [Header("File")]
-        [Tooltip("If relative, it is resolved under StreamingAssets. Example: Replays/ep_000001.jsonl")]
+        [Tooltip("If relative, resolved under StreamingAssets. Example: Replays/ep_000001.jsonl")]
         public string episodePath = "Replays/ep_000001.jsonl";
 
         [Header("Prefabs")]
         public GameObject interceptorPrefab;  // your Missile_Prefab
-        public GameObject threatPrefab;       // your ThreatRocket prefab (or any simple visual)
+        public GameObject threatPrefab;       // your ThreatRocket prefab (or simple visual)
 
         [Header("Modes")]
         public ReplayMode interceptorMode = ReplayMode.PhysicsFromActions;
@@ -27,6 +27,18 @@ namespace Replay
 
         [Header("Time/DT")]
         public bool matchHeaderFixedDelta = true;
+
+        [Header("Anchoring / Offsets")]
+        [Tooltip("If set, the defended target (aim_point) will be placed at this Transform.position.")]
+        public Transform anchor;                   // optional
+        [Tooltip("If true, subtract scene.threat_0.aim_point (ENU) from all positions before mapping to Unity.")]
+        public bool useAimPointAsOrigin = true;
+        [Tooltip("Additional ENU offset to subtract (applied after aim_point).")]
+        public Vector3 enuAdditionalOffset = Vector3.zero;
+
+        [Header("Startup")]
+        [Tooltip("Number of physics ticks to keep agents kinematic at t0 (prevents early collisions/drift).")]
+        public int initialFreezeTicks = 2;
 
         // runtime
         bool paused;
@@ -45,12 +57,22 @@ namespace Replay
 
         int idx;              // current frame index (frames[idx] <= t < frames[idx+1])
 
+        // anchoring state
+        Vector3 enuAnchorOffset = Vector3.zero; // subtract from ENU before mapping
+        Vector3 worldAnchorAdd  = Vector3.zero; // add in Unity after mapping
+
+        // freeze at start
+        int   freezeLeft;
+        Pose  interceptPose0, threatPose0;
+
         void Awake()
         {
             LoadEpisode(ResolvePath(episodePath));
-            SpawnAgentsAndPlaceAtFirstFrame();
+            ComputeAnchors();
+            CacheFirstPoses();
+            SpawnAgentsFrozenAtFirstFrame();
 
-            if (matchHeaderFixedDelta && header != null && header.meta != null && header.meta.dt_nominal > 0f)
+            if (matchHeaderFixedDelta && header?.meta?.dt_nominal > 0f)
             {
                 dtNominal = header.meta.dt_nominal;
                 Time.fixedDeltaTime = dtNominal;
@@ -60,8 +82,10 @@ namespace Replay
             t = (frames.Count > 0 ? frames[0].t : 0f);
             idx = 0;
 
-            // We already snapped to first frame during spawn; keep this for consistency
-            SnapToTime(t, force:true);
+            var ip = frames[0].agents.interceptor_0.p;
+            var tp = frames[0].agents.threat_0.p;
+            Debug.Log($"[ReplayDirector] t0 ENU interceptor p=({ip[0]:0.###},{ip[1]:0.###},{ip[2]:0.###}) -> Unity {interceptPose0.position}");
+            Debug.Log($"[ReplayDirector] t0 ENU threat      p=({tp[0]:0.###},{tp[1]:0.###},{tp[2]:0.###}) -> Unity {threatPose0.position}");
         }
 
         void Update()
@@ -81,6 +105,23 @@ namespace Replay
         void FixedUpdate()
         {
             if (frames.Count < 2) return;
+
+            // Freeze window: hold exact t0 pose; keep both kinematic
+            if (freezeLeft > 0)
+            {
+                freezeLeft--;
+                if (blue)  { blue.SetKinematic(true);  blue.ForceKinematicPose(interceptPose0.position, interceptPose0.rotation); }
+                if (red)   { red.SetKinematic(true);   red.ForceKinematicPose(threatPose0.position,    threatPose0.rotation);    }
+
+                if (freezeLeft == 0)
+                {
+                    // Switch to requested modes after deterministic placement
+                    if (blue) blue.ConfigureForMode(interceptorMode);
+                    if (red)  red.ConfigureForMode(threatMode);
+                }
+                return;
+            }
+
             if (!paused) t += Time.fixedDeltaTime * playSpeed;
 
             // clamp to last frame
@@ -99,11 +140,9 @@ namespace Replay
             float span = Mathf.Max(1e-6f, b.t - a.t);
             float alpha = Mathf.Clamp01((t - a.t) / span);
 
-            // Apply interceptor
             if (blue != null && a.agents?.interceptor_0 != null)
                 ApplyAgent(blue, a.agents.interceptor_0, b.agents?.interceptor_0, alpha);
 
-            // Apply threat
             if (red != null && a.agents?.threat_0 != null)
                 ApplyAgent(red, a.agents.threat_0, b.agents?.threat_0, alpha);
         }
@@ -112,22 +151,22 @@ namespace Replay
         {
             if (agent.mode == ReplayMode.Kinematic)
             {
-                // Interpolate pose
+                // Interpolate pose (with offsets)
                 Vector3 pA = new Vector3(A.p[0], A.p[1], A.p[2]);
                 Vector3 pB = (B != null && B.p != null) ? new Vector3(B.p[0], B.p[1], B.p[2]) : pA;
 
-                // Convert world->body quats (ENU) to Unity rotation (body->world), then slerp
                 Quaternion qA = EnuUnity.UnityRotationFromEnuWorldToBody(A.q[0], A.q[1], A.q[2], A.q[3]);
                 Quaternion qB = (B != null && B.q != null)
                     ? EnuUnity.UnityRotationFromEnuWorldToBody(B.q[0], B.q[1], B.q[2], B.q[3]) : qA;
 
-                Vector3 pU = EnuUnity.ENUtoUnity(Vector3.Lerp(pA, pB, alpha));
+                Vector3 pENU = Vector3.Lerp(pA, pB, alpha);
+                Vector3 pU   = MapEnuToUnityWithAnchor(pENU);
                 Quaternion qU = Quaternion.Slerp(qA, qB, alpha);
                 agent.ApplyKinematic(pU, qU);
             }
             else // PhysicsFromActions
             {
-                // Use latest available actions (zero-order hold)
+                // Use latest available actions (ZOH)
                 float[] u = (A.u != null && A.u.Length >= 4) ? A.u : (B?.u);
                 agent.ApplyActions(u);
             }
@@ -143,11 +182,9 @@ namespace Replay
         void SnapToTime(float time, bool force)
         {
             if (frames.Count == 0) return;
-            // find surrounding frames
             int j = Mathf.Clamp(BinarySearchByTime(time), 0, frames.Count-1);
             idx = Mathf.Max(0, j - 1);
 
-            // apply exact pose at 'time' via interpolation with alpha
             var a = frames[idx];
             var b = (idx+1 < frames.Count) ? frames[idx+1] : a;
             float span = Mathf.Max(1e-6f, b.t - a.t);
@@ -173,7 +210,51 @@ namespace Replay
             return lo;
         }
 
-        void SpawnAgentsAndPlaceAtFirstFrame()
+        // ---------- Anchoring ----------
+        void ComputeAnchors()
+        {
+            enuAnchorOffset = Vector3.zero;
+            worldAnchorAdd  = (anchor ? anchor.position : Vector3.zero);
+
+            if (useAimPointAsOrigin && header?.scene?.threat_0?.aim_point != null &&
+                header.scene.threat_0.aim_point.Length >= 3)
+            {
+                enuAnchorOffset = new Vector3(
+                    header.scene.threat_0.aim_point[0],
+                    header.scene.threat_0.aim_point[1],
+                    header.scene.threat_0.aim_point[2]);
+            }
+            enuAnchorOffset += enuAdditionalOffset;
+        }
+
+        Vector3 MapEnuToUnityWithAnchor(Vector3 pENU)
+        {
+            // Subtract ENU anchor (aim_point etc.), then map to Unity, then add world anchor
+            Vector3 shifted = pENU - enuAnchorOffset;
+            return EnuUnity.ENUtoUnity(shifted) + worldAnchorAdd;
+        }
+
+        Pose GetUnityPose(AgentState s)
+        {
+            Vector3 pENU = new Vector3(s.p[0], s.p[1], s.p[2]);
+            Vector3 pU   = MapEnuToUnityWithAnchor(pENU);
+            Quaternion qU = EnuUnity.UnityRotationFromEnuWorldToBody(s.q[0], s.q[1], s.q[2], s.q[3]);
+            return new Pose(pU, qU);
+        }
+
+        void CacheFirstPoses()
+        {
+            var first = frames.Count > 0 ? frames[0] : null;
+            if (first == null || first.agents == null)
+            {
+                Debug.LogError("[ReplayDirector] No frames/agents.");
+                return;
+            }
+            interceptPose0 = GetUnityPose(first.agents.interceptor_0);
+            threatPose0    = GetUnityPose(first.agents.threat_0);
+        }
+
+        void SpawnAgentsFrozenAtFirstFrame()
         {
             var first = frames.Count > 0 ? frames[0] : null;
             if (first == null || first.agents == null)
@@ -182,36 +263,32 @@ namespace Replay
                 return;
             }
 
-            // Convert first-frame poses
-            Pose interceptPose = GetUnityPose(first.agents.interceptor_0);
-            Pose threatPose    = GetUnityPose(first.agents.threat_0);
+            freezeLeft = Mathf.Max(0, initialFreezeTicks);
 
-            // Spawn Interceptor
+            // Interceptor
             if (interceptorPrefab)
             {
-                var go = Instantiate(interceptorPrefab, interceptPose.position, interceptPose.rotation);
+                var go = Instantiate(interceptorPrefab, interceptPose0.position, interceptPose0.rotation);
                 go.name = "Interceptor_Replay";
                 TemporarilyDisableColliders(go, true);
 
-                blue = go.GetComponent<AgentReplayer>();
-                if (!blue) blue = go.AddComponent<AgentReplayer>();
+                blue = go.GetComponent<AgentReplayer>() ?? go.AddComponent<AgentReplayer>();
                 blue.agentId = "interceptor_0";
-                blue.ConfigureForMode(interceptorMode);
+                blue.SetKinematic(true); // keep frozen initially
 
                 TemporarilyDisableColliders(go, false);
             }
 
-            // Spawn Threat
+            // Threat
             if (threatPrefab)
             {
-                var go = Instantiate(threatPrefab, threatPose.position, threatPose.rotation);
+                var go = Instantiate(threatPrefab, threatPose0.position, threatPose0.rotation);
                 go.name = "Threat_Replay";
                 TemporarilyDisableColliders(go, true);
 
-                red = go.GetComponent<AgentReplayer>();
-                if (!red) red = go.AddComponent<AgentReplayer>();
+                red = go.GetComponent<AgentReplayer>() ?? go.AddComponent<AgentReplayer>();
                 red.agentId = "threat_0";
-                red.ConfigureForMode(threatMode);
+                red.SetKinematic(true); // keep frozen initially
 
                 TemporarilyDisableColliders(go, false);
             }
@@ -221,18 +298,6 @@ namespace Replay
         {
             var cols = go.GetComponentsInChildren<Collider>(true);
             foreach (var c in cols) c.enabled = !disable;
-        }
-
-        static Pose GetUnityPose(AgentState s)
-        {
-            // ENU -> Unity position
-            Vector3 pENU = new Vector3(s.p[0], s.p[1], s.p[2]);
-            Vector3 pU   = EnuUnity.ENUtoUnity(pENU);
-
-            // ENU world->body quaternion -> Unity rotation (body->world)
-            Quaternion qU = EnuUnity.UnityRotationFromEnuWorldToBody(s.q[0], s.q[1], s.q[2], s.q[3]);
-
-            return new Pose(pU, qU);
         }
 
         void LoadEpisode(string path)
@@ -298,11 +363,13 @@ namespace Replay
 
         void OnGUI()
         {
-            GUILayout.BeginArea(new Rect(8, 8, 380, 130), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(8, 8, 440, 140), GUI.skin.box);
             GUILayout.Label($"Episode: {epId}");
             GUILayout.Label($"t = {t:0.00}s   speed = {playSpeed:0.##}x   paused = {paused}");
             GUILayout.Label($"Frames: {frames.Count}   dt_nominal = {dtNominal:0.###}s");
             GUILayout.Label($"Modes: interceptor={interceptorMode}  threat={threatMode}");
+            if (useAimPointAsOrigin)
+                GUILayout.Label($"Anchored at aim_point ENU {enuAnchorOffset} → world add {worldAnchorAdd}");
             GUILayout.EndArea();
         }
     }
