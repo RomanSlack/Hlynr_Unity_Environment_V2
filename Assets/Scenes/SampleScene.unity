@@ -256,12 +256,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b85c1923230836839f02e35e0cbf7a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  episodePath: Replays/ep_000001.jsonl
+  episodePath: Replays/run_simple_fixed_2.jsonl
   interceptorPrefab: {fileID: 6149331585787757335, guid: 5321552adbd054ecbb82cc7d75763a8a, type: 3}
   threatPrefab: {fileID: 6149331585787757335, guid: 03ecd8cc2de800741ab4dcd8e1731217, type: 3}
   interceptorMode: 1
   threatMode: 0
-  playSpeed: 1
+  playSpeed: 0.33
   autoPlay: 1
   matchHeaderFixedDelta: 1
   anchor: {fileID: 657118081}
