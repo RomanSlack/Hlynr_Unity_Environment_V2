@@ -259,7 +259,7 @@ MonoBehaviour:
   episodePath: Replays/run_simple_fixed_2.jsonl
   interceptorPrefab: {fileID: 6149331585787757335, guid: 5321552adbd054ecbb82cc7d75763a8a, type: 3}
   threatPrefab: {fileID: 6149331585787757335, guid: 03ecd8cc2de800741ab4dcd8e1731217, type: 3}
-  interceptorMode: 1
+  interceptorMode: 0
   threatMode: 0
   playSpeed: 0.33
   autoPlay: 1

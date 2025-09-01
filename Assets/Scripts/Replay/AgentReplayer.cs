@@ -53,6 +53,9 @@ namespace Replay
                     // Do NOT set rb.velocity/angVel on kinematic bodies (Unity warns).
                     rb.useGravity = false;
                 }
+                
+                // Reset kinematic tracking state
+                firstKinematicUpdate = true;
             }
             else // PhysicsFromActions
             {
@@ -109,7 +112,7 @@ namespace Replay
         }
 
         // ----- Kinematic application during playback -----
-""        Vector3 lastPosition = Vector3.zero;
+        Vector3 lastPosition = Vector3.zero;
         Quaternion lastRotation = Quaternion.identity;
         bool firstKinematicUpdate = true;
 
