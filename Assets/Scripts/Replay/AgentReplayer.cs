@@ -109,6 +109,10 @@ namespace Replay
         }
 
         // ----- Kinematic application during playback -----
+""        Vector3 lastPosition = Vector3.zero;
+        Quaternion lastRotation = Quaternion.identity;
+        bool firstKinematicUpdate = true;
+
         public void ApplyKinematic(Vector3 posUnity, Quaternion rotUnity)
         {
             if (!rb)
@@ -116,6 +120,27 @@ namespace Replay
                 transform.SetPositionAndRotation(posUnity, rotUnity);
                 return;
             }
+
+            // Calculate velocities from position/rotation changes for visual realism
+            if (!firstKinematicUpdate)
+            {
+                Vector3 deltaPos = posUnity - lastPosition;
+                rb.linearVelocity = deltaPos / Time.fixedDeltaTime;
+
+                // Calculate angular velocity from rotation change
+                Quaternion deltaRot = rotUnity * Quaternion.Inverse(lastRotation);
+                deltaRot.ToAngleAxis(out float angle, out Vector3 axis);
+                if (angle > 180f) angle -= 360f; // Handle wrap-around
+                Vector3 angularVel = axis * (angle * Mathf.Deg2Rad / Time.fixedDeltaTime);
+                rb.angularVelocity = angularVel;
+            }
+            else
+            {
+                firstKinematicUpdate = false;
+            }
+
+            lastPosition = posUnity;
+            lastRotation = rotUnity;
 
             // MovePosition/MoveRotation are valid for kinematic bodies.
             rb.MovePosition(posUnity);
