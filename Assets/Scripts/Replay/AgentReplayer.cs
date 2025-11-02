@@ -83,11 +83,25 @@ namespace Replay
         public void SetKinematic(bool kinematic)
         {
             if (!rb) return;
-            rb.isKinematic = kinematic;
-            if (kinematic)
+            if (!kinematic && rb.isKinematic)
             {
+                // Switching from kinematic to dynamic - can set velocities
+                rb.isKinematic = false;
                 rb.linearVelocity = Vector3.zero;
                 rb.angularVelocity = Vector3.zero;
+            }
+            else
+            {
+                rb.isKinematic = kinematic;
+                if (!kinematic)
+                {
+                    rb.linearVelocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
+            }
+
+            if (kinematic)
+            {
                 rb.useGravity = false;
             }
         }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,8 +11,8 @@ namespace Replay
     public sealed class ReplayDirector : MonoBehaviour
     {
         [Header("File")]
-        [Tooltip("If relative, resolved under StreamingAssets. Example: Replays/ep_000001.jsonl")]
-        public string episodePath = "Replays/ep_000001.jsonl";
+        [Tooltip("If relative, resolved under StreamingAssets. Example: Replays/70p_00_intercepted.jsonl")]
+        public string episodePath = "Replays/70p_00_intercepted.jsonl";
 
         [Header("Prefabs")]
         public GameObject interceptorPrefab;  // your Missile_Prefab
@@ -27,13 +28,14 @@ namespace Replay
 
         [Header("Time/DT")]
         public bool matchHeaderFixedDelta = true;
+        public float defaultDtNominal = 0.01f;
 
         [Header("Anchoring / Offsets")]
-        [Tooltip("If set, the defended target (aim_point) will be placed at this Transform.position.")]
+        [Tooltip("If set, the defended target will be placed at this Transform.position.")]
         public Transform anchor;                   // optional
-        [Tooltip("If true, subtract scene.threat_0.aim_point (ENU) from all positions before mapping to Unity.")]
-        public bool useAimPointAsOrigin = true;
-        [Tooltip("Additional ENU offset to subtract (applied after aim_point).")]
+        [Tooltip("If true, use first missile position as origin.")]
+        public bool useFirstMissileAsOrigin = false;
+        [Tooltip("Additional ENU offset to subtract.")]
         public Vector3 enuAdditionalOffset = Vector3.zero;
 
         [Header("Startup")]
@@ -43,17 +45,18 @@ namespace Replay
         // runtime
         bool paused;
         float t;                  // current replay time (seconds)
-        float dtNominal = 0.01f;  // from header
+        float dtNominal = 0.01f;  // estimated from data
         string epId = "unknown";
+        string outcome = "unknown";
 
         // parsed data
         List<TimestepLine> frames = new List<TimestepLine>();
         HeaderLine header;
-        SummaryLine summary;
+        FooterLine footer;
 
         // agents
-        AgentReplayer blue;   // interceptor_0
-        AgentReplayer red;    // threat_0
+        AgentReplayer blue;   // interceptor
+        AgentReplayer red;    // missile
 
         int idx;              // current frame index (frames[idx] <= t < frames[idx+1])
 
@@ -68,24 +71,31 @@ namespace Replay
         void Awake()
         {
             LoadEpisode(ResolvePath(episodePath));
+
+            if (frames.Count == 0)
+            {
+                Debug.LogError("[ReplayDirector] No frames loaded. Cannot initialize replay.");
+                enabled = false;
+                return;
+            }
+
             ComputeAnchors();
             CacheFirstPoses();
             SpawnAgentsFrozenAtFirstFrame();
 
-            if (matchHeaderFixedDelta && header?.meta?.dt_nominal > 0f)
+            if (matchHeaderFixedDelta && dtNominal > 0f)
             {
-                dtNominal = header.meta.dt_nominal;
                 Time.fixedDeltaTime = dtNominal;
             }
 
             paused = !autoPlay;
-            t = (frames.Count > 0 ? frames[0].t : 0f);
+            t = frames[0].t;
             idx = 0;
 
-            var ip = frames[0].agents.interceptor_0.p;
-            var tp = frames[0].agents.threat_0.p;
+            var ip = frames[0].interceptor.p;
+            var tp = frames[0].missile.p;
             Debug.Log($"[ReplayDirector] t0 ENU interceptor p=({ip[0]:0.###},{ip[1]:0.###},{ip[2]:0.###}) -> Unity {interceptPose0.position}");
-            Debug.Log($"[ReplayDirector] t0 ENU threat      p=({tp[0]:0.###},{tp[1]:0.###},{tp[2]:0.###}) -> Unity {threatPose0.position}");
+            Debug.Log($"[ReplayDirector] t0 ENU missile     p=({tp[0]:0.###},{tp[1]:0.###},{tp[2]:0.###}) -> Unity {threatPose0.position}");
         }
 
         void Update()
@@ -140,11 +150,11 @@ namespace Replay
             float span = Mathf.Max(1e-6f, b.t - a.t);
             float alpha = Mathf.Clamp01((t - a.t) / span);
 
-            if (blue != null && a.agents?.interceptor_0 != null)
-                ApplyAgent(blue, a.agents.interceptor_0, b.agents?.interceptor_0, alpha);
+            if (blue != null && a.interceptor != null)
+                ApplyAgent(blue, a.interceptor, b.interceptor, alpha);
 
-            if (red != null && a.agents?.threat_0 != null)
-                ApplyAgent(red, a.agents.threat_0, b.agents?.threat_0, alpha);
+            if (red != null && a.missile != null)
+                ApplyAgent(red, a.missile, b.missile, alpha);
         }
 
         void ApplyAgent(AgentReplayer agent, AgentState A, AgentState B, float alpha)
@@ -190,10 +200,10 @@ namespace Replay
             float span = Mathf.Max(1e-6f, b.t - a.t);
             float alpha = Mathf.Clamp01((time - a.t) / span);
 
-            if (blue != null && a.agents?.interceptor_0 != null)
-                ApplyAgent(blue, a.agents.interceptor_0, b.agents?.interceptor_0, alpha);
-            if (red != null && a.agents?.threat_0 != null)
-                ApplyAgent(red, a.agents.threat_0, b.agents?.threat_0, alpha);
+            if (blue != null && a.interceptor != null)
+                ApplyAgent(blue, a.interceptor, b.interceptor, alpha);
+            if (red != null && a.missile != null)
+                ApplyAgent(red, a.missile, b.missile, alpha);
         }
 
         int BinarySearchByTime(float time)
@@ -216,13 +226,13 @@ namespace Replay
             enuAnchorOffset = Vector3.zero;
             worldAnchorAdd  = (anchor ? anchor.position : Vector3.zero);
 
-            if (useAimPointAsOrigin && header?.scene?.threat_0?.aim_point != null &&
-                header.scene.threat_0.aim_point.Length >= 3)
+            if (useFirstMissileAsOrigin && frames.Count > 0 && frames[0].missile?.p != null &&
+                frames[0].missile.p.Length >= 3)
             {
                 enuAnchorOffset = new Vector3(
-                    header.scene.threat_0.aim_point[0],
-                    header.scene.threat_0.aim_point[1],
-                    header.scene.threat_0.aim_point[2]);
+                    frames[0].missile.p[0],
+                    frames[0].missile.p[1],
+                    frames[0].missile.p[2]);
             }
             enuAnchorOffset += enuAdditionalOffset;
         }
@@ -245,19 +255,19 @@ namespace Replay
         void CacheFirstPoses()
         {
             var first = frames.Count > 0 ? frames[0] : null;
-            if (first == null || first.agents == null)
+            if (first == null || first.interceptor == null || first.missile == null)
             {
                 Debug.LogError("[ReplayDirector] No frames/agents.");
                 return;
             }
-            interceptPose0 = GetUnityPose(first.agents.interceptor_0);
-            threatPose0    = GetUnityPose(first.agents.threat_0);
+            interceptPose0 = GetUnityPose(first.interceptor);
+            threatPose0    = GetUnityPose(first.missile);
         }
 
         void SpawnAgentsFrozenAtFirstFrame()
         {
             var first = frames.Count > 0 ? frames[0] : null;
-            if (first == null || first.agents == null)
+            if (first == null || first.interceptor == null || first.missile == null)
             {
                 Debug.LogError("[ReplayDirector] No frames/agents.");
                 return;
@@ -273,21 +283,21 @@ namespace Replay
                 TemporarilyDisableColliders(go, true);
 
                 blue = go.GetComponent<AgentReplayer>() ?? go.AddComponent<AgentReplayer>();
-                blue.agentId = "interceptor_0";
+                blue.agentId = "interceptor";
                 blue.SetKinematic(true); // keep frozen initially
 
                 TemporarilyDisableColliders(go, false);
             }
 
-            // Threat
+            // Threat/Missile
             if (threatPrefab)
             {
                 var go = Instantiate(threatPrefab, threatPose0.position, threatPose0.rotation);
-                go.name = "Threat_Replay";
+                go.name = "Missile_Replay";
                 TemporarilyDisableColliders(go, true);
 
                 red = go.GetComponent<AgentReplayer>() ?? go.AddComponent<AgentReplayer>();
-                red.agentId = "threat_0";
+                red.agentId = "missile";
                 red.SetKinematic(true); // keep frozen initially
 
                 TemporarilyDisableColliders(go, false);
@@ -310,49 +320,113 @@ namespace Replay
 
             frames.Clear();
             header = null;
-            summary = null;
+            footer = null;
+
+            // Parse raw state lines
+            var rawStates = new List<StateLine>();
 
             using (var sr = new StreamReader(path))
             {
                 string line;
-                bool headerParsed = false;
                 while ((line = sr.ReadLine()) != null)
                 {
                     line = line.Trim();
                     if (line.Length == 0) continue;
 
-                    if (!headerParsed && line.Contains("\"meta\"") && line.Contains("\"scene\""))
+                    if (line.Contains("\"type\""))
                     {
-                        header = JsonUtility.FromJson<HeaderLine>(line);
-                        headerParsed = true;
-                        epId = header?.meta?.ep_id ?? "unknown";
-                        dtNominal = header?.meta?.dt_nominal ?? dtNominal;
-                        continue;
-                    }
-
-                    if (line.Contains("\"agents\""))
-                    {
-                        var ts = JsonUtility.FromJson<TimestepLine>(line);
-                        if (ts != null && ts.agents != null &&
-                            ts.agents.interceptor_0 != null && ts.agents.threat_0 != null)
+                        if (line.Contains("\"header\""))
                         {
-                            frames.Add(ts);
+                            header = JsonUtility.FromJson<HeaderLine>(line);
+                            epId = header?.episode_id ?? "unknown";
+                            continue;
                         }
-                        continue;
-                    }
-
-                    if (line.Contains("\"summary\""))
-                    {
-                        summary = JsonUtility.FromJson<SummaryLine>(line);
-                        break;
+                        else if (line.Contains("\"state\""))
+                        {
+                            var state = JsonUtility.FromJson<StateLine>(line);
+                            if (state != null && state.state != null)
+                            {
+                                rawStates.Add(state);
+                            }
+                            continue;
+                        }
+                        else if (line.Contains("\"footer\""))
+                        {
+                            footer = JsonUtility.FromJson<FooterLine>(line);
+                            outcome = footer?.outcome ?? "unknown";
+                            break;
+                        }
                     }
                 }
             }
 
-            if (frames.Count < 2)
-                Debug.LogWarning($"[ReplayDirector] Episode loaded but only {frames.Count} timestep lines found.");
+            // Group states by timestamp (round to nearest millisecond to handle floating point differences)
+            // The timestamps are very close but not identical (microsecond differences)
+            var timestampGroups = rawStates
+                .GroupBy(s => Mathf.Round(s.timestamp * 1000f) / 1000f) // Round to ms
+                .OrderBy(g => g.Key);
 
-            Debug.Log($"[ReplayDirector] Loaded '{Path.GetFileName(path)}' ep_id={epId} frames={frames.Count} dt_nominal={dtNominal:0.###}s");
+            foreach (var group in timestampGroups)
+            {
+                var interceptorState = group.FirstOrDefault(s => s.entity_id == "interceptor");
+                var missileState = group.FirstOrDefault(s => s.entity_id == "missile");
+
+                if (interceptorState != null && missileState != null)
+                {
+                    var frame = new TimestepLine
+                    {
+                        t = group.Key - (header?.start_time ?? 0f), // Convert to relative time
+                        interceptor = ConvertToAgentState(interceptorState, true),
+                        missile = ConvertToAgentState(missileState, false)
+                    };
+                    frames.Add(frame);
+                }
+            }
+
+            // Estimate dt_nominal from frame differences
+            if (frames.Count >= 2)
+            {
+                float sumDt = 0f;
+                for (int i = 1; i < Mathf.Min(10, frames.Count); i++)
+                {
+                    sumDt += frames[i].t - frames[i - 1].t;
+                }
+                dtNominal = sumDt / Mathf.Min(9, frames.Count - 1);
+            }
+            else
+            {
+                dtNominal = defaultDtNominal;
+            }
+
+            if (frames.Count < 2)
+                Debug.LogWarning($"[ReplayDirector] Episode loaded but only {frames.Count} timestep frames found.");
+
+            Debug.Log($"[ReplayDirector] Loaded '{Path.GetFileName(path)}' ep_id={epId} frames={frames.Count} dt_nominal={dtNominal:0.###}s outcome={outcome}");
+        }
+
+        AgentState ConvertToAgentState(StateLine stateLine, bool isInterceptor)
+        {
+            var state = new AgentState
+            {
+                p = stateLine.state.position ?? new float[] { 0, 0, 0 },
+                q = new float[] { 1, 0, 0, 0 }, // Default identity quaternion
+                v = new float[] { 0, 0, 0 },    // Velocity not in new format
+                w = new float[] { 0, 0, 0 },    // Angular velocity not in new format
+                status = "active"
+            };
+
+            if (isInterceptor)
+            {
+                state.fuel_kg = stateLine.state.fuel;
+                state.u = stateLine.state.action ?? new float[6];
+            }
+            else
+            {
+                state.fuel_kg = 0f;
+                state.u = new float[6];
+            }
+
+            return state;
         }
 
         string ResolvePath(string relOrAbs)
@@ -363,13 +437,15 @@ namespace Replay
 
         void OnGUI()
         {
-            GUILayout.BeginArea(new Rect(8, 8, 440, 140), GUI.skin.box);
-            GUILayout.Label($"Episode: {epId}");
+            GUILayout.BeginArea(new Rect(8, 8, 440, 160), GUI.skin.box);
+            GUILayout.Label($"Episode: {epId}  Outcome: {outcome}");
             GUILayout.Label($"t = {t:0.00}s   speed = {playSpeed:0.##}x   paused = {paused}");
             GUILayout.Label($"Frames: {frames.Count}   dt_nominal = {dtNominal:0.###}s");
-            GUILayout.Label($"Modes: interceptor={interceptorMode}  threat={threatMode}");
-            if (useAimPointAsOrigin)
-                GUILayout.Label($"Anchored at aim_point ENU {enuAnchorOffset} → world add {worldAnchorAdd}");
+            GUILayout.Label($"Modes: interceptor={interceptorMode}  missile={threatMode}");
+            if (useFirstMissileAsOrigin)
+                GUILayout.Label($"Anchored at first missile ENU {enuAnchorOffset} → world add {worldAnchorAdd}");
+            if (footer?.metrics != null)
+                GUILayout.Label($"Fuel used: {footer.metrics.fuel_used:0.##}kg  Distance: {footer.metrics.final_distance:0.##}m");
             GUILayout.EndArea();
         }
     }
