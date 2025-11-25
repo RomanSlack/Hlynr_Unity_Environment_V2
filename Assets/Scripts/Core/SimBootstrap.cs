@@ -58,8 +58,8 @@ public sealed class SimBootstrap : MonoBehaviour
         if (paused && kb.rightArrowKey.wasPressedThisFrame)
             StartCoroutine(StepOnce());
 
-        // Reset scene with R
-        if (kb.rKey.wasPressedThisFrame)
+        // Reset scene with Ctrl+R (changed from just R to avoid conflict with ReplayDirector)
+        if (kb.rKey.wasPressedThisFrame && (kb.leftCtrlKey.isPressed || kb.rightCtrlKey.isPressed))
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 

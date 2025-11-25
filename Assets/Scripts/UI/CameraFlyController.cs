@@ -18,18 +18,42 @@ public class CameraFlyController : MonoBehaviour
 
     void Start()
     {
+        // Initialize rotation from current transform to avoid snapping
         Vector3 euler = transform.eulerAngles;
-        rotationX = euler.x;
+        // Normalize angles to -180 to 180 range
+        rotationX = euler.x > 180 ? euler.x - 360 : euler.x;
         rotationY = euler.y;
-        
+
         LockCursor();
     }
 
     void Update()
     {
+        // Use unscaledDeltaTime for true god mode that works even when game is paused
         HandleMouseLook();
         HandleMovement();
+        HandleSpeedAdjustment();
         HandleCursorToggle();
+    }
+
+    void HandleSpeedAdjustment()
+    {
+        var mouse = Mouse.current;
+        if (mouse != null)
+        {
+            float scroll = mouse.scroll.ReadValue().y;
+            if (Mathf.Abs(scroll) > 0.01f)
+            {
+                // Scale speed by 10% per scroll notch (like Unity Scene view)
+                float multiplier = scroll > 0 ? 1.1f : 0.9f;
+                moveSpeed *= multiplier;
+                fastMoveSpeed *= multiplier;
+
+                // Clamp to reasonable range
+                moveSpeed = Mathf.Clamp(moveSpeed, 0.1f, 1000f);
+                fastMoveSpeed = Mathf.Clamp(fastMoveSpeed, moveSpeed, 2000f);
+            }
+        }
     }
 
     void HandleMouseLook()
@@ -40,8 +64,9 @@ public class CameraFlyController : MonoBehaviour
             if (mouse != null)
             {
                 Vector2 mouseDelta = mouse.delta.ReadValue();
-                float mouseX = mouseDelta.x * mouseSensitivity * Time.deltaTime;
-                float mouseY = mouseDelta.y * mouseSensitivity * Time.deltaTime;
+                // Use unscaledDeltaTime to work during pause
+                float mouseX = mouseDelta.x * mouseSensitivity * Time.unscaledDeltaTime;
+                float mouseY = mouseDelta.y * mouseSensitivity * Time.unscaledDeltaTime;
 
                 rotationY += mouseX;
                 rotationX -= mouseY;
@@ -72,8 +97,9 @@ public class CameraFlyController : MonoBehaviour
         float currentSpeed = keyboard.leftShiftKey.isPressed ? fastMoveSpeed : moveSpeed;
         targetVelocity = inputVector * currentSpeed;
 
-        velocity = Vector3.Lerp(velocity, targetVelocity, smoothTime * Time.deltaTime * 10f);
-        transform.position += velocity * Time.deltaTime;
+        // Use unscaledDeltaTime to work during pause
+        velocity = Vector3.Lerp(velocity, targetVelocity, smoothTime * Time.unscaledDeltaTime * 10f);
+        transform.position += velocity * Time.unscaledDeltaTime;
     }
 
     void HandleCursorToggle()

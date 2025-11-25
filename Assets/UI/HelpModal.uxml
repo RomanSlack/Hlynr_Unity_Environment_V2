@@ -1,0 +1,43 @@
+<ui:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="help-modal" style="position: absolute; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.85); align-items: center; justify-content: center; display: none;">
+        <ui:VisualElement name="help-content" style="background-color: rgba(20, 20, 25, 0.95); border-left-color: rgb(0, 180, 255); border-right-color: rgb(0, 180, 255); border-top-color: rgb(0, 180, 255); border-bottom-color: rgb(0, 180, 255); border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px; border-top-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; border-bottom-left-radius: 8px; padding-top: 30px; padding-right: 40px; padding-bottom: 30px; padding-left: 40px; max-width: 800px; min-width: 600px;">
+            <!-- Header -->
+            <ui:Label text="HLYNR INTERCEPT CONTROLS" name="help-title" style="font-size: 24px; -unity-font-style: bold; color: rgb(0, 180, 255); margin-bottom: 20px; -unity-text-align: upper-center;" />
+
+            <!-- Simulation Controls -->
+            <ui:VisualElement name="section-simulation" style="margin-bottom: 20px;">
+                <ui:Label text="SIMULATION CONTROLS" name="section-header-sim" style="font-size: 16px; -unity-font-style: bold; color: rgb(100, 200, 255); margin-bottom: 8px;" />
+                <ui:Label text="I          Launch Interceptor" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="P          Pause/Unpause Simulation" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="R          Reset Scene" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="Y          Start/Stop RL Inference Mode" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="T          Toggle Threat Mode (Straight/Rocket)" style="margin-left: 15px; margin-bottom: 4px;" />
+            </ui:VisualElement>
+
+            <!-- Camera Controls -->
+            <ui:VisualElement name="section-camera" style="margin-bottom: 20px;">
+                <ui:Label text="CAMERA CONTROLS" name="section-header-cam" style="font-size: 16px; -unity-font-style: bold; color: rgb(100, 200, 255); margin-bottom: 8px;" />
+                <ui:Label text="W/A/S/D    Move Camera" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="Q/E        Move Down/Up" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="Mouse      Look Around (hold right-click)" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="Shift      Fast Movement" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="Scroll     Adjust Camera Speed" style="margin-left: 15px; margin-bottom: 4px;" />
+            </ui:VisualElement>
+
+            <!-- Debug/Info -->
+            <ui:VisualElement name="section-debug" style="margin-bottom: 20px;">
+                <ui:Label text="DEBUG &amp; INFO" name="section-header-debug" style="font-size: 16px; -unity-font-style: bold; color: rgb(100, 200, 255); margin-bottom: 8px;" />
+                <ui:Label text="H or ?     Toggle This Help Screen" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="F1         Toggle Frame Conversion Display" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="F2         Toggle ENU/Unity Coordinate Display" style="margin-left: 15px; margin-bottom: 4px;" />
+                <ui:Label text="ESC        Close Help / Show Cursor" style="margin-left: 15px; margin-bottom: 4px;" />
+            </ui:VisualElement>
+
+            <!-- About -->
+            <ui:VisualElement name="section-about" style="margin-top: 30px; padding-top: 15px; border-top-width: 1px; border-top-color: rgba(100, 200, 255, 0.3);">
+                <ui:Label text="A high-fidelity missile defense simulation for developing and testing interceptor control systems and reinforcement learning algorithms." style="font-size: 11px; color: rgba(255, 255, 255, 0.6); -unity-text-align: upper-center; white-space: normal; margin-bottom: 8px;" />
+                <ui:Label text="Press H or ? to close this help screen" style="font-size: 12px; color: rgb(0, 180, 255); -unity-text-align: upper-center; -unity-font-style: bold;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

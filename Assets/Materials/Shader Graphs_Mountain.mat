@@ -46,7 +46,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AO_Sand:
-        m_Texture: {fileID: 2800000, guid: 97e0363c4043674d2ba8079c92f7f094, type: 3}
+        m_Texture: {fileID: 2800000, guid: c09bd7f03e97e5ebebf778bf81beede8, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _AO_Snow:
@@ -62,7 +62,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColor_Sand:
-        m_Texture: {fileID: 2800000, guid: 0994baf32163713769505c30b6075776, type: 3}
+        m_Texture: {fileID: 2800000, guid: 2a32d08b5ea7a82348d082f8e9bd976b, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Base_Snow:
@@ -78,7 +78,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal_Sand:
-        m_Texture: {fileID: 2800000, guid: ca20bb79e80f2ad8a9f296ead5d53979, type: 3}
+        m_Texture: {fileID: 2800000, guid: 9b32ab113e423703e907ee5b3f26684a, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal_Snow:

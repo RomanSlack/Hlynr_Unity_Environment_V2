@@ -9,7 +9,7 @@ namespace Replay
     {
         public string type;         // "header"
         public string episode_id;
-        public float start_time;
+        public double start_time;   // Absolute start time (for reference)
         public Metadata metadata;
     }
 
@@ -21,7 +21,7 @@ namespace Replay
     [Serializable] public sealed class StateLine
     {
         public string type;         // "state"
-        public float timestamp;
+        public float timestamp;     // Relative time from episode start (in seconds)
         public string entity_id;    // "interceptor" or "missile"
         public EntityState state;
     }
@@ -37,7 +37,8 @@ namespace Replay
     {
         public string type;         // "footer"
         public string episode_id;
-        public float end_time;
+        public double end_time;     // Absolute end time (for reference)
+        public float duration;      // Episode duration in seconds
         public string outcome;      // "intercepted", "miss", etc.
         public Metrics metrics;
     }
@@ -49,8 +50,8 @@ namespace Replay
         public float final_distance;
         public float fuel_used;
         public bool volley_mode;
-        public int? missiles_intercepted;
-        public int? volley_size;
+        public int missiles_intercepted;  // -1 means null
+        public int volley_size;           // -1 means null
     }
 
     // Internal format used by ReplayDirector

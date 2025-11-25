@@ -15,7 +15,7 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.48637474, g: 0.4846794, b: 0.4753551, a: 1}
+  m_FogColor: {r: 0.4716981, g: 0.4716981, b: 0.45612317, a: 1}
   m_FogMode: 2
   m_FogDensity: 0.0015
   m_LinearFogStart: 0
@@ -131,6 +131,7 @@ GameObject:
   - component: {fileID: 3931621}
   - component: {fileID: 3931620}
   - component: {fileID: 3931619}
+  - component: {fileID: 3931623}
   m_Layer: 0
   m_Name: Target
   m_TagString: Untagged
@@ -182,7 +183,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 070726ace837f326a9330987ec2506e2, type: 2}
+  - {fileID: 2100000, guid: ff8b41de55511556c8b281f106159a7d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -221,12 +222,30 @@ Transform:
   m_GameObject: {fileID: 3931618}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -64.5, y: -1.39, z: 0}
+  m_LocalPosition: {x: -68, y: 1, z: 0}
   m_LocalScale: {x: 18.155767, y: 18.155767, z: 18.155767}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3931623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3931618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0.22745098, b: 1, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1001 &12220040
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -291,6 +310,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (19)
@@ -369,6 +392,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (35)
@@ -524,6 +551,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (24)
@@ -602,6 +633,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 3cb3f3644e88bfe96967c37f31350147, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 3cb3f3644e88bfe96967c37f31350147, type: 3}
       propertyPath: m_Name
       value: military_wall_short (3)
@@ -680,6 +715,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
       propertyPath: m_Name
       value: military_watchtower_1 (2)
@@ -761,7 +800,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: 8f5557e7d9056175f9299404e80ef9dd, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 3013f9175b38e3fbb8baf7f7f9454df2, type: 2}
+      objectReference: {fileID: 2100000, guid: e3f27cb890c758234bb96a55b193cf04, type: 2}
     - target: {fileID: 919132149155446097, guid: 8f5557e7d9056175f9299404e80ef9dd, type: 3}
       propertyPath: m_Name
       value: military_radar_1 (1)
@@ -776,6 +815,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8f5557e7d9056175f9299404e80ef9dd, type: 3}
   m_PrefabInstance: {fileID: 192542762}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &194234956 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
+  m_PrefabInstance: {fileID: 1679941785}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &241818914
 GameObject:
   m_ObjectHideFlags: 0
@@ -786,6 +830,7 @@ GameObject:
   m_Component:
   - component: {fileID: 241818916}
   - component: {fileID: 241818915}
+  - component: {fileID: 241818917}
   m_Layer: 0
   m_Name: Replay
   m_TagString: Untagged
@@ -805,12 +850,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b85c1923230836839f02e35e0cbf7a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  episodePath: Replays/70p_00_intercepted.jsonl
+  episodePath: Replays/hrl_intercept.jsonl
   interceptorPrefab: {fileID: 6149331585787757335, guid: 5321552adbd054ecbb82cc7d75763a8a, type: 3}
   threatPrefab: {fileID: 6149331585787757335, guid: 03ecd8cc2de800741ab4dcd8e1731217, type: 3}
   interceptorMode: 0
   threatMode: 0
-  playSpeed: 0.33
+  playSpeed: 0.1
   autoPlay: 1
   matchHeaderFixedDelta: 1
   defaultDtNominal: 0.01
@@ -818,6 +863,11 @@ MonoBehaviour:
   useFirstMissileAsOrigin: 0
   enuAdditionalOffset: {x: 0, y: 0, z: 0}
   initialFreezeTicks: 2
+  showOverlayOnStart: 0
+  enableCruiseIn: 1
+  cruiseInDuration: 7.62
+  cruiseDistanceMultiplier: 1.5
+  cruiseInPlaySpeed: 0.51
 --- !u!4 &241818916
 Transform:
   m_ObjectHideFlags: 0
@@ -833,6 +883,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &241818917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 241818914}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 482a1fb3df11a8473873de4a6c60e836, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  interceptorCamera: {fileID: 957456659}
+  threatCamera: {fileID: 1511616053}
+  pipWidth: 0.2
+  pipHeight: 0.2
+  padding: 15
 --- !u!1001 &257177549
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -897,6 +964,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (17)
@@ -910,6 +981,11 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 054b199074f96eceea33130e6f42882c, type: 3}
   m_PrefabInstance: {fileID: 257177549}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &289137147 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
+  m_PrefabInstance: {fileID: 1273350574}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &330585543
 GameObject:
@@ -999,7 +1075,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: -0.20483789, y: 0.47122064, z: 0.11422214, w: 0.8502622}
-  m_LocalPosition: {x: -21.2, y: 20.2, z: -8.8}
+  m_LocalPosition: {x: -101.8, y: 11, z: -24.9}
   m_LocalScale: {x: 1.0135, y: 1.0135, z: 1.0135}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1129,6 +1205,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
       propertyPath: m_Name
       value: military_watchtower_1 (4)
@@ -1207,6 +1287,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
       propertyPath: m_Name
       value: military_watchtower_1 (3)
@@ -1411,8 +1495,8 @@ Transform:
   m_GameObject: {fileID: 426560588}
   serializedVersion: 2
   m_LocalRotation: {x: -0.5091305, y: 0.50070107, z: 0.4991322, w: 0.4908683}
-  m_LocalPosition: {x: 291.96094, y: -5.7828054, z: 117.62161}
-  m_LocalScale: {x: 1038.0836, y: 92.099556, z: 3.8632152}
+  m_LocalPosition: {x: 291.8, y: -0.6, z: 117.5}
+  m_LocalScale: {x: 1038.0836, y: 92.099556, z: 11.358625}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1374118270}
@@ -1461,7 +1545,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e1bc155b846cad0b2b9ffecbefc71cd3, type: 2}
+  - {fileID: 2100000, guid: 933b295ac0d6a038bb737633ffec4b1a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1555,6 +1639,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (31)
@@ -1629,6 +1717,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
       propertyPath: m_Name
       value: military_building_1
@@ -1636,7 +1728,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 876503038}
   m_SourcePrefab: {fileID: 100100000, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
 --- !u!4 &444728078 stripped
 Transform:
@@ -1767,7 +1862,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: e1bc155b846cad0b2b9ffecbefc71cd3, type: 2}
+  - {fileID: 2100000, guid: 933b295ac0d6a038bb737633ffec4b1a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1932,6 +2027,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (32)
@@ -2235,6 +2334,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
       propertyPath: m_Name
       value: military_building_2 (1)
@@ -2242,7 +2345,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1847813642}
   m_SourcePrefab: {fileID: 100100000, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
 --- !u!4 &642851638 stripped
 Transform:
@@ -2274,7 +2380,7 @@ Transform:
   m_GameObject: {fileID: 657118080}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.06534, y: -0.04, z: -0}
+  m_LocalPosition: {x: -69.9, y: 16.49, z: -0.84}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2344,6 +2450,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (6)
@@ -2422,6 +2532,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (3)
@@ -2500,6 +2614,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
       propertyPath: m_Name
       value: military_watchtower_1 (5)
@@ -2655,6 +2773,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (4)
@@ -2733,6 +2855,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (10)
@@ -2811,6 +2937,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (5)
@@ -2951,6 +3081,29 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 61ebcc26f51384ac0992526ab5febae1, type: 3}
+--- !u!1 &876503035 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
+  m_PrefabInstance: {fileID: 444728077}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &876503038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 876503035}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0.2243948, b: 1, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1001 &918553537
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3015,6 +3168,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (33)
@@ -3029,7 +3186,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 054b199074f96eceea33130e6f42882c, type: 3}
   m_PrefabInstance: {fileID: 918553537}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &961723318
+--- !u!1 &957456657
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3037,47 +3194,126 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 961723320}
-  - component: {fileID: 961723319}
+  - component: {fileID: 957456660}
+  - component: {fileID: 957456659}
+  - component: {fileID: 957456658}
   m_Layer: 0
-  m_Name: GlobalVolume
+  m_Name: InterceptorPiPCamera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &961723319
+--- !u!114 &957456658
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 961723318}
+  m_GameObject: {fileID: 957456657}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_IsGlobal: 1
-  priority: 0
-  blendDistance: 0
-  weight: 1
-  sharedProfile: {fileID: 11400000, guid: ab09877e2e707104187f6f83e2f62510, type: 2}
---- !u!4 &961723320
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+--- !u!20 &957456659
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 957456657}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 5000
+  field of view: 41
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &957456660
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 961723318}
+  m_GameObject: {fileID: 957456657}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 24.51357, y: 0.57076, z: 45.65309}
+  m_LocalRotation: {x: -0, y: 0.42647243, z: -0, w: 0.90450066}
+  m_LocalPosition: {x: 71.31816, y: 0, z: -3.09364}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 50.488, z: 0}
 --- !u!1 &965239824
 GameObject:
   m_ObjectHideFlags: 0
@@ -3188,6 +3424,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
       propertyPath: m_Name
       value: military_watchtower_1
@@ -3348,6 +3588,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (26)
@@ -3387,7 +3631,7 @@ Transform:
   m_GameObject: {fileID: 1062431499}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -67.7, y: 6.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3498,6 +3742,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (1)
@@ -3576,6 +3824,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (20)
@@ -3654,6 +3906,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (16)
@@ -3732,6 +3988,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (23)
@@ -3890,7 +4150,7 @@ PrefabInstance:
     - target: {fileID: -7511558181221131132, guid: 8f5557e7d9056175f9299404e80ef9dd, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 3013f9175b38e3fbb8baf7f7f9454df2, type: 2}
+      objectReference: {fileID: 2100000, guid: e3f27cb890c758234bb96a55b193cf04, type: 2}
     - target: {fileID: 919132149155446097, guid: 8f5557e7d9056175f9299404e80ef9dd, type: 3}
       propertyPath: m_Name
       value: military_radar_1
@@ -3965,6 +4225,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
       propertyPath: m_Name
       value: military_building_1 (1)
@@ -3972,13 +4236,34 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1273350578}
   m_SourcePrefab: {fileID: 100100000, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
 --- !u!4 &1273350575 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 3f1fc9900b444b9109aeaad6ada2a541, type: 3}
   m_PrefabInstance: {fileID: 1273350574}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1273350578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 289137147}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0.22745098, b: 1, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1001 &1299328155
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4043,6 +4328,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 3cb3f3644e88bfe96967c37f31350147, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 3cb3f3644e88bfe96967c37f31350147, type: 3}
       propertyPath: m_Name
       value: military_wall_short
@@ -4209,6 +4498,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 3cb3f3644e88bfe96967c37f31350147, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 3cb3f3644e88bfe96967c37f31350147, type: 3}
       propertyPath: m_Name
       value: military_wall_short (1)
@@ -4441,6 +4734,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (25)
@@ -4519,6 +4816,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (29)
@@ -4674,6 +4975,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (18)
@@ -4688,6 +4993,134 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 054b199074f96eceea33130e6f42882c, type: 3}
   m_PrefabInstance: {fileID: 1491608133}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1511616051
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1511616054}
+  - component: {fileID: 1511616053}
+  - component: {fileID: 1511616052}
+  m_Layer: 0
+  m_Name: ThreatPiPCamera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1511616052
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1511616051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+--- !u!20 &1511616053
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1511616051}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 80000
+  field of view: 41
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &1511616054
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1511616051}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 71.31816, y: 0, z: -3.09364}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1522260589
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4752,6 +5185,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (9)
@@ -4817,7 +5254,7 @@ Light:
   m_Enabled: 1
   serializedVersion: 11
   m_Type: 1
-  m_Color: {r: 1, g: 0.8236265, b: 0.5241687, a: 1}
+  m_Color: {r: 1, g: 0.92792505, b: 0.8061984, a: 1}
   m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
@@ -4951,6 +5388,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (37)
@@ -5029,6 +5470,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (15)
@@ -5107,6 +5552,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (21)
@@ -5185,6 +5634,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (27)
@@ -5263,6 +5716,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 17f9e4bc45290b982bdcc2d9f4d925b6, type: 3}
       propertyPath: m_Name
       value: military_watchtower_1 (1)
@@ -5341,6 +5798,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (22)
@@ -5381,7 +5842,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 61ebcc26f51384ac0992526ab5febae1, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -37
+      value: -70
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 61ebcc26f51384ac0992526ab5febae1, type: 3}
       propertyPath: m_LocalPosition.z
@@ -5721,6 +6182,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
       propertyPath: m_Name
       value: military_building_2
@@ -5728,13 +6193,34 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1679941789}
   m_SourcePrefab: {fileID: 100100000, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
 --- !u!4 &1679941786 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
   m_PrefabInstance: {fileID: 1679941785}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1679941789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 194234956}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0.22745098, b: 1, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1 &1699863955
 GameObject:
   m_ObjectHideFlags: 0
@@ -5907,6 +6393,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (13)
@@ -6062,6 +6552,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (7)
@@ -6140,6 +6634,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 3cb3f3644e88bfe96967c37f31350147, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 3cb3f3644e88bfe96967c37f31350147, type: 3}
       propertyPath: m_Name
       value: military_wall_short (2)
@@ -6259,6 +6757,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (36)
@@ -6337,6 +6839,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (2)
@@ -6351,6 +6857,29 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 054b199074f96eceea33130e6f42882c, type: 3}
   m_PrefabInstance: {fileID: 1836122693}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1847813639 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: bc257aafbe81d8140a08d4b79e9748eb, type: 3}
+  m_PrefabInstance: {fileID: 642851637}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1847813642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1847813639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fea29bb7c508c244a1f805a5fd3fc4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineMode: 0
+  outlineColor: {r: 0, g: 0.22745098, b: 1, a: 1}
+  outlineWidth: 2
+  precomputeOutline: 0
+  bakeKeys: []
+  bakeValues: []
 --- !u!1001 &1854878975
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6415,6 +6944,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (8)
@@ -6493,6 +7026,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long
@@ -6571,6 +7108,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (30)
@@ -6700,6 +7241,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (14)
@@ -6855,6 +7400,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (12)
@@ -6933,6 +7482,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (28)
@@ -7011,6 +7564,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0910aec6261905687b9305c0cef0d06e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hudDocument: {fileID: 2043616691}
+  interceptorCamera: {fileID: 0}
+  threatCamera: {fileID: 0}
 --- !u!1001 &2079882678
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7075,6 +7631,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (34)
@@ -7153,6 +7713,10 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: 054b199074f96eceea33130e6f42882c, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 90dd430536b16dca5b4224b50702500e, type: 2}
     - target: {fileID: 919132149155446097, guid: 054b199074f96eceea33130e6f42882c, type: 3}
       propertyPath: m_Name
       value: military_wall_long (11)
@@ -7200,5 +7764,6 @@ SceneRoots:
   - {fileID: 596989968}
   - {fileID: 1218655136}
   - {fileID: 417359040}
-  - {fileID: 961723320}
   - {fileID: 1374118270}
+  - {fileID: 957456660}
+  - {fileID: 1511616054}

@@ -12,8 +12,16 @@ public class FlyCamera : MonoBehaviour
     public float lookSpeed   = 0.1f;   // degrees per pixel
     public bool  invertY     = false;
 
+    private float rotationX = 0f;
+    private float rotationY = 0f;
+
     void Start()
     {
+        // Initialize rotation from current transform to avoid snapping
+        Vector3 euler = transform.eulerAngles;
+        rotationX = euler.x > 180 ? euler.x - 360 : euler.x;
+        rotationY = euler.y;
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible   = false;
     }
@@ -24,7 +32,7 @@ public class FlyCamera : MonoBehaviour
         var ms   = Mouse.current;
         Vector3 dir = Vector3.zero;
 
-        // — Move on WASD —
+        // — Move on WASD (use unscaledDeltaTime for god mode) —
         if (kb.wKey.isPressed) dir += transform.forward;
         if (kb.sKey.isPressed) dir -= transform.forward;
         if (kb.aKey.isPressed) dir -= transform.right;
@@ -34,13 +42,27 @@ public class FlyCamera : MonoBehaviour
         if (kb.eKey.isPressed) dir += transform.up * climbSpeed;
         if (kb.qKey.isPressed) dir -= transform.up * climbSpeed;
 
-        transform.position += dir * moveSpeed * Time.deltaTime;
+        transform.position += dir * moveSpeed * Time.unscaledDeltaTime;
 
-        // — Mouse look —
+        // — Mouse scroll to adjust speed (like Unity Scene view) —
+        float scroll = ms.scroll.ReadValue().y;
+        if (Mathf.Abs(scroll) > 0.01f)
+        {
+            float multiplier = scroll > 0 ? 1.1f : 0.9f;
+            moveSpeed *= multiplier;
+            moveSpeed = Mathf.Clamp(moveSpeed, 0.1f, 1000f);
+        }
+
+        // — Mouse look (use unscaledDeltaTime for god mode) —
         Vector2 delta = ms.delta.ReadValue();
-        float yaw   = delta.x * lookSpeed;
-        float pitch = delta.y * lookSpeed * (invertY ? 1 : -1);
-        transform.Rotate(-pitch, yaw, 0f, Space.Self);
+        float yaw   = delta.x * lookSpeed * Time.unscaledDeltaTime * 60f; // Scale for frame rate independence
+        float pitch = delta.y * lookSpeed * (invertY ? 1 : -1) * Time.unscaledDeltaTime * 60f;
+
+        rotationY += yaw;
+        rotationX -= pitch;
+        rotationX = Mathf.Clamp(rotationX, -90f, 90f);
+
+        transform.rotation = Quaternion.Euler(rotationX, rotationY, 0f);
 
         // — Unlock cursor —
         if (kb.escapeKey.wasPressedThisFrame)
