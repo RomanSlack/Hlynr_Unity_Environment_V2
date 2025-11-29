@@ -72,4 +72,72 @@ namespace Replay
         public float[] u;        // actions (from interceptor)
         public float   fuel_kg;  // fuel
     }
+
+    // ==================== Radar Data Types ====================
+
+    /// <summary>
+    /// Raw radar state line from JSONL (entity_id == "radar")
+    /// </summary>
+    [Serializable] public sealed class RadarStateLine
+    {
+        public string type;         // "state"
+        public float timestamp;
+        public string entity_id;    // "radar"
+        public RadarStateData state;
+    }
+
+    [Serializable] public sealed class RadarStateData
+    {
+        public OnboardRadarState onboard;
+        public GroundRadarState ground;
+        public FusionState fusion;
+    }
+
+    [Serializable] public sealed class OnboardRadarState
+    {
+        public float[] position;           // Interceptor position
+        public float[] forward_vector;     // Seeker look direction
+        public float beam_width_deg;       // Total beam width (e.g., 120)
+        public float beam_angle_to_target_deg;
+        public float half_beam_width_deg;
+        public bool in_beam;               // Target within seeker FOV
+        public float range_to_target;
+        public float max_range;
+        public bool detected;
+        public string detection_reason;    // "detected", "outside_beam", "poor_signal"
+        public float quality;              // 0-1 signal quality
+    }
+
+    [Serializable] public sealed class GroundRadarState
+    {
+        public float[] position;           // Ground station position
+        public bool enabled;
+        public float max_range;
+        public float min_elevation_deg;
+        public float max_elevation_deg;
+        public float range_to_target;
+        public float elevation_deg;
+        public bool detected;
+        public string detection_reason;
+        public float quality;
+    }
+
+    [Serializable] public sealed class FusionState
+    {
+        public float datalink_quality;     // Communication quality
+        public float fusion_confidence;    // Combined track confidence
+        public bool both_detected;         // Both radars see target
+        public bool any_detected;          // At least one radar sees target
+    }
+
+    /// <summary>
+    /// Processed radar frame for replay (matches TimestepLine timing)
+    /// </summary>
+    [Serializable] public sealed class RadarFrame
+    {
+        public float t;
+        public OnboardRadarState onboard;
+        public GroundRadarState ground;
+        public FusionState fusion;
+    }
 }

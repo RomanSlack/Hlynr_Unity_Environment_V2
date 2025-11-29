@@ -850,7 +850,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b85c1923230836839f02e35e0cbf7a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  episodePath: Replays/hrl_intercept.jsonl
+  episodePath: Replays/ep_0005_intercepted_radar_logging_test.jsonl
   interceptorPrefab: {fileID: 6149331585787757335, guid: 5321552adbd054ecbb82cc7d75763a8a, type: 3}
   threatPrefab: {fileID: 6149331585787757335, guid: 03ecd8cc2de800741ab4dcd8e1731217, type: 3}
   interceptorMode: 0
@@ -868,6 +868,7 @@ MonoBehaviour:
   cruiseInDuration: 7.62
   cruiseDistanceMultiplier: 1.5
   cruiseInPlaySpeed: 0.51
+  showRadarDisplay: 1
 --- !u!4 &241818916
 Transform:
   m_ObjectHideFlags: 0

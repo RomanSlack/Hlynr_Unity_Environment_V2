@@ -57,6 +57,10 @@ namespace Replay
         [Range(0.5f, 3f)]
         public float cruiseInPlaySpeed = 1f;
 
+        [Header("Radar Display")]
+        [Tooltip("Show radar display when radar data is available in episode")]
+        public bool showRadarDisplay = true;
+
         // runtime
         bool paused;
         float t;                  // current replay time (seconds)
@@ -76,8 +80,13 @@ namespace Replay
 
         // parsed data
         List<TimestepLine> frames = new List<TimestepLine>();
+        List<RadarFrame> radarFrames = new List<RadarFrame>();
         HeaderLine header;
         FooterLine footer;
+
+        // radar display
+        RadarDisplayUI radarDisplay;
+        int radarIdx;  // current radar frame index
 
         // agents
         AgentReplayer blue;   // interceptor
@@ -146,6 +155,31 @@ namespace Replay
             paused = !autoPlay;
             t = frames[0].t;
             idx = 0;
+            radarIdx = 0;
+
+            // Initialize radar display if we have radar data and display is enabled
+            if (radarFrames.Count > 0 && showRadarDisplay)
+            {
+                radarDisplay = FindObjectOfType<RadarDisplayUI>();
+                if (radarDisplay == null)
+                {
+                    // Create radar display if it doesn't exist
+                    var radarGO = new GameObject("RadarDisplay");
+                    radarDisplay = radarGO.AddComponent<RadarDisplayUI>();
+                    Debug.Log($"[ReplayDirector] Created RadarDisplayUI, {radarFrames.Count} radar frames available");
+                }
+                else
+                {
+                    radarDisplay.gameObject.SetActive(true);
+                }
+            }
+            else if (radarFrames.Count == 0)
+            {
+                // Disable any existing radar display if no radar data
+                var existingRadar = FindObjectOfType<RadarDisplayUI>();
+                if (existingRadar != null)
+                    existingRadar.gameObject.SetActive(false);
+            }
 
             // Store initial camera transform
             var mainCam = Camera.main;
@@ -200,6 +234,12 @@ namespace Replay
                 // Toggle overlay
                 if (kb.hKey.wasPressedThisFrame) showOverlay = !showOverlay;
 
+                // Toggle radar display (G key)
+                if (kb.gKey.wasPressedThisFrame && radarDisplay != null)
+                {
+                    radarDisplay.gameObject.SetActive(!radarDisplay.gameObject.activeSelf);
+                }
+
                 // Camera follow controls
                 if (kb.iKey.wasPressedThisFrame)
                 {
@@ -251,6 +291,9 @@ namespace Replay
             // Reset velocity-based orientation tracking
             blueLastRotation = Quaternion.identity;
             redLastRotation = Quaternion.identity;
+
+            // Reset radar index
+            radarIdx = 0;
 
             // Handle cruise-in restart
             if (enableCruiseIn)
@@ -455,6 +498,22 @@ namespace Replay
 
             if (red != null && a.missile != null)
                 ApplyAgent(red, a.missile, b.missile, alpha);
+
+            // Update radar display
+            UpdateRadarDisplay();
+        }
+
+        void UpdateRadarDisplay()
+        {
+            if (radarDisplay == null || radarFrames.Count == 0) return;
+
+            // Find current radar frame (advance radarIdx to match current time t)
+            while (radarIdx + 1 < radarFrames.Count && radarFrames[radarIdx + 1].t <= t)
+                radarIdx++;
+
+            // Get current radar frame
+            var radarFrame = radarFrames[Mathf.Clamp(radarIdx, 0, radarFrames.Count - 1)];
+            radarDisplay.UpdateRadarState(radarFrame);
         }
 
         /// <summary>
@@ -821,11 +880,13 @@ namespace Replay
             }
 
             frames.Clear();
+            radarFrames.Clear();
             header = null;
             footer = null;
 
             // Parse raw state lines
             var rawStates = new List<StateLine>();
+            var rawRadarStates = new List<RadarStateLine>();
 
             using (var sr = new StreamReader(path))
             {
@@ -845,10 +906,22 @@ namespace Replay
                         }
                         else if (line.Contains("\"state\""))
                         {
-                            var state = JsonUtility.FromJson<StateLine>(line);
-                            if (state != null && state.state != null)
+                            // Check if this is a radar state line
+                            if (line.Contains("\"entity_id\": \"radar\"") || line.Contains("\"entity_id\":\"radar\""))
                             {
-                                rawStates.Add(state);
+                                var radarState = JsonUtility.FromJson<RadarStateLine>(line);
+                                if (radarState != null && radarState.state != null)
+                                {
+                                    rawRadarStates.Add(radarState);
+                                }
+                            }
+                            else
+                            {
+                                var state = JsonUtility.FromJson<StateLine>(line);
+                                if (state != null && state.state != null)
+                                {
+                                    rawStates.Add(state);
+                                }
                             }
                             continue;
                         }
@@ -885,6 +958,20 @@ namespace Replay
                 }
             }
 
+            // Process radar frames
+            foreach (var rawRadar in rawRadarStates)
+            {
+                var radarFrame = new RadarFrame
+                {
+                    t = rawRadar.timestamp,
+                    onboard = rawRadar.state?.onboard,
+                    ground = rawRadar.state?.ground,
+                    fusion = rawRadar.state?.fusion
+                };
+                radarFrames.Add(radarFrame);
+            }
+            radarFrames = radarFrames.OrderBy(r => r.t).ToList();
+
             // Estimate dt_nominal from frame differences
             if (frames.Count >= 2)
             {
@@ -903,7 +990,7 @@ namespace Replay
             if (frames.Count < 2)
                 Debug.LogWarning($"[ReplayDirector] Episode loaded but only {frames.Count} timestep frames found.");
 
-            Debug.Log($"[ReplayDirector] Loaded '{Path.GetFileName(path)}' ep_id={epId} frames={frames.Count} dt_nominal={dtNominal:0.###}s outcome={outcome}");
+            Debug.Log($"[ReplayDirector] Loaded '{Path.GetFileName(path)}' ep_id={epId} frames={frames.Count} radar_frames={radarFrames.Count} dt_nominal={dtNominal:0.###}s outcome={outcome}");
         }
 
         AgentState ConvertToAgentState(StateLine stateLine, bool isInterceptor)
@@ -978,13 +1065,16 @@ namespace Replay
             GUILayout.EndArea();
 
             // Controls guide panel
-            GUILayout.BeginArea(new Rect(8, 198, 740, 220), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(8, 198, 740, 250), GUI.skin.box);
             GUILayout.Label("<b>REPLAY CONTROLS</b>", new GUIStyle(GUI.skin.label) { richText = true, fontSize = 12 });
             GUILayout.Label("SPACE - Play/Pause      R - Restart      Shift+R - Reset Camera      Ctrl+R - Full Reload      H - Hide");
             GUILayout.Label("← → - Step frames (paused)      1-6 - Speed: 0.1x / 0.25x / 0.5x / 1x / 2x / 4x      [ ] - ±0.25x");
             GUILayout.Space(6);
             GUILayout.Label("<b>CAMERA MODES</b>", new GUIStyle(GUI.skin.label) { richText = true, fontSize = 11 });
             GUILayout.Label("I - Toggle Follow Interceptor      M - Toggle Follow Threat      F - Free Camera (unlock)");
+            GUILayout.Space(6);
+            GUILayout.Label("<b>DISPLAYS</b>", new GUIStyle(GUI.skin.label) { richText = true, fontSize = 11 });
+            GUILayout.Label($"G - Toggle Radar Display {(radarFrames.Count > 0 ? "(available)" : "(no data)")}");
             GUILayout.Space(6);
             GUILayout.Label("<b>FREE CAMERA CONTROLS</b> (God Mode - works even when paused!)", new GUIStyle(GUI.skin.label) { richText = true, fontSize = 11 });
             GUILayout.Label("WASD - Move      Mouse - Look      Q/E - Down/Up      Scroll - Speed      Shift - Fast      ESC - Cursor");
