@@ -15,13 +15,31 @@ public class ThermalVisionController : MonoBehaviour
     [Tooltip("Start with thermal vision enabled")]
     public bool startEnabled = false;
 
-    [Header("Effect Settings")]
+    [Header("Thermal Settings")]
     [Range(0.5f, 3.0f)]
     public float contrast = 1.5f;
 
     [Range(-0.5f, 0.5f)]
     public float brightness = 0.0f;
 
+    [Range(0f, 1f)]
+    [Tooltip("Threshold for detecting hot spots (lower = more areas glow)")]
+    public float hotThreshold = 0.7f;
+
+    [Header("Bloom (Hot Object Glow)")]
+    [Range(0f, 2f)]
+    [Tooltip("Intensity of the bloom/glow on hot objects")]
+    public float bloomIntensity = 0.8f;
+
+    [Range(0f, 1f)]
+    [Tooltip("Brightness threshold for bloom (lower = more objects bloom)")]
+    public float bloomThreshold = 0.5f;
+
+    [Range(1f, 20f)]
+    [Tooltip("Size/spread of the bloom effect")]
+    public float bloomRadius = 6.0f;
+
+    [Header("Noise & Scanlines")]
     [Range(0f, 0.15f)]
     public float noiseAmount = 0.03f;
 
@@ -31,11 +49,9 @@ public class ThermalVisionController : MonoBehaviour
     [Range(100f, 800f)]
     public float scanlineCount = 300f;
 
+    [Header("Vignette")]
     [Range(0f, 1f)]
     public float vignetteIntensity = 0.4f;
-
-    [Range(0f, 1f)]
-    public float hotThreshold = 0.7f;
 
     // Static instance for the renderer feature to access
     public static ThermalVisionController Instance { get; private set; }
@@ -49,6 +65,9 @@ public class ThermalVisionController : MonoBehaviour
     private static readonly int ScanlineCountID = Shader.PropertyToID("_ScanlineCount");
     private static readonly int VignetteIntensityID = Shader.PropertyToID("_VignetteIntensity");
     private static readonly int HotThresholdID = Shader.PropertyToID("_HotThreshold");
+    private static readonly int BloomIntensityID = Shader.PropertyToID("_BloomIntensity");
+    private static readonly int BloomThresholdID = Shader.PropertyToID("_BloomThreshold");
+    private static readonly int BloomRadiusID = Shader.PropertyToID("_BloomRadius");
 
     void Awake()
     {
@@ -90,6 +109,9 @@ public class ThermalVisionController : MonoBehaviour
             ThermalMaterial.SetFloat(ScanlineCountID, scanlineCount);
             ThermalMaterial.SetFloat(VignetteIntensityID, vignetteIntensity);
             ThermalMaterial.SetFloat(HotThresholdID, hotThreshold);
+            ThermalMaterial.SetFloat(BloomIntensityID, bloomIntensity);
+            ThermalMaterial.SetFloat(BloomThresholdID, bloomThreshold);
+            ThermalMaterial.SetFloat(BloomRadiusID, bloomRadius);
         }
     }
 

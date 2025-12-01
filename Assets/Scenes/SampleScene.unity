@@ -865,7 +865,7 @@ MonoBehaviour:
   initialFreezeTicks: 2
   showOverlayOnStart: 0
   enableCruiseIn: 1
-  cruiseInDuration: 7.62
+  cruiseInDuration: 4.06
   cruiseDistanceMultiplier: 1.5
   cruiseInPlaySpeed: 0.51
   showRadarDisplay: 1
@@ -1280,11 +1280,14 @@ MonoBehaviour:
   startEnabled: 0
   contrast: 1.7
   brightness: 0.337
+  hotThreshold: 0.086
+  bloomIntensity: 0.8
+  bloomThreshold: 0.5
+  bloomRadius: 3
   noiseAmount: 0.011
   scanlineIntensity: 0.132
   scanlineCount: 300
   vignetteIntensity: 0.25
-  hotThreshold: 0.086
 --- !u!1001 &341005513
 PrefabInstance:
   m_ObjectHideFlags: 0
