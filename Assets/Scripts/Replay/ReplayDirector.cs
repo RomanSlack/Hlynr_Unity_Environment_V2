@@ -61,6 +61,18 @@ namespace Replay
         [Tooltip("Show radar display when radar data is available in episode")]
         public bool showRadarDisplay = true;
 
+        // ========== Hot-Swap API ==========
+        /// <summary>
+        /// Event fired when a new replay is loaded via LoadReplayAt().
+        /// Subscribers receive the new episode path.
+        /// </summary>
+        public event System.Action<string> OnReplayChanged;
+
+        /// <summary>
+        /// Current episode path (relative to StreamingAssets).
+        /// </summary>
+        public string CurrentEpisodePath => episodePath;
+
         // runtime
         bool paused;
         float t;                  // current replay time (seconds)
@@ -202,6 +214,10 @@ namespace Replay
 
         void Update()
         {
+            // Block input when replay menu is open
+            var replayMenu = FindObjectOfType<ReplayMenuController>();
+            if (replayMenu != null && replayMenu.IsVisible) return;
+
             var kb = Keyboard.current;
             if (kb != null)
             {
@@ -360,6 +376,112 @@ namespace Replay
                     }
                 }
             }
+        }
+
+        // ========== Hot-Swap Methods ==========
+
+        /// <summary>
+        /// Load and start a new replay, destroying existing agents.
+        /// Safe to call while replay is running. Used by ReplayMenuController.
+        /// </summary>
+        /// <param name="newPath">Relative path under StreamingAssets (e.g., "Replays/my_episode.jsonl")</param>
+        public void LoadReplayAt(string newPath)
+        {
+            Debug.Log($"[ReplayDirector] Hot-swap requested: {newPath}");
+
+            // 1. Pause and cleanup existing agents
+            paused = true;
+            CleanupAgents();
+
+            // 2. Update path and clear data
+            episodePath = newPath;
+            frames.Clear();
+            radarFrames.Clear();
+            header = null;
+            footer = null;
+            epId = "unknown";
+            outcome = "unknown";
+
+            // 3. Load new episode
+            LoadEpisode(ResolvePath(episodePath));
+
+            if (frames.Count == 0)
+            {
+                Debug.LogError($"[ReplayDirector] Failed to load replay: {newPath}");
+                return;
+            }
+
+            // 4. Re-initialize anchoring and poses
+            ComputeAnchors();
+            CacheFirstPoses();
+
+            // 5. Reset velocity tracking
+            blueLastRotation = Quaternion.identity;
+            redLastRotation = Quaternion.identity;
+
+            // 6. Handle cruise-in or direct spawn
+            if (enableCruiseIn)
+            {
+                ComputeCruiseInTrajectory();
+                SpawnForCruiseIn();
+                currentPhase = PlaybackPhase.CruiseIn;
+                cruiseInTime = 0f;
+            }
+            else
+            {
+                SpawnAgentsFrozenAtFirstFrame();
+                currentPhase = PlaybackPhase.Replay;
+            }
+
+            // 7. Reset playback state
+            t = frames[0].t;
+            idx = 0;
+            radarIdx = 0;
+
+            // 8. Update radar display
+            if (radarFrames.Count > 0 && showRadarDisplay)
+            {
+                if (radarDisplay == null)
+                {
+                    radarDisplay = FindObjectOfType<RadarDisplayUI>();
+                }
+                if (radarDisplay != null)
+                {
+                    radarDisplay.gameObject.SetActive(true);
+                }
+            }
+            else if (radarDisplay != null)
+            {
+                radarDisplay.gameObject.SetActive(false);
+            }
+
+            // 9. Keep paused for user to start
+            paused = true;
+
+            // 10. Fire event for UI updates
+            OnReplayChanged?.Invoke(episodePath);
+
+            Debug.Log($"[ReplayDirector] Hot-swapped to: {Path.GetFileName(newPath)} ({frames.Count} frames)");
+        }
+
+        /// <summary>
+        /// Cleanup existing replay agents (destroys GameObjects).
+        /// </summary>
+        private void CleanupAgents()
+        {
+            if (blue != null)
+            {
+                Destroy(blue.gameObject);
+                blue = null;
+            }
+            if (red != null)
+            {
+                Destroy(red.gameObject);
+                red = null;
+            }
+
+            // Reset camera follow mode to prevent issues
+            followMode = CameraFollowMode.Free;
         }
 
         void SnapCameraToTarget()

@@ -28,6 +28,10 @@ public class FlyCamera : MonoBehaviour
 
     void Update()
     {
+        // Skip input when replay menu is open
+        var replayMenu = FindObjectOfType<ReplayMenuController>();
+        if (replayMenu != null && replayMenu.IsVisible) return;
+
         var kb   = Keyboard.current;
         var ms   = Mouse.current;
         Vector3 dir = Vector3.zero;

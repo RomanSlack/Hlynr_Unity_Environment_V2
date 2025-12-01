@@ -29,6 +29,10 @@ public class CameraFlyController : MonoBehaviour
 
     void Update()
     {
+        // Skip input when replay menu is open
+        var replayMenu = FindObjectOfType<ReplayMenuController>();
+        if (replayMenu != null && replayMenu.IsVisible) return;
+
         // Use unscaledDeltaTime for true god mode that works even when game is paused
         HandleMouseLook();
         HandleMovement();
